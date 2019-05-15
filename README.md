@@ -10,7 +10,16 @@ The code base is split into 3 main folders.
 3. graph (The graph-node mappings that index the local blockchain)
 
 
-To get started
+
+This repo requires the following minimum versions installed in the developer enviroment:
+
+Truffle v5.0.12 (core: 5.0.12)
+Solidity - 0.5.4 (solc-js)
+Node v11.13.0
+Web3.js v1.0.0-beta.37
+Yarn - 1.15
+
+Getting started:
 
 1. `git clone git@github.com:CreditMint/loan-dapp-starter-kit.git`
 2. `cd loan-dapp-starter-kit`

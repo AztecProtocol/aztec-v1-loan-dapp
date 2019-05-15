@@ -19,10 +19,12 @@ To get started
 
 This copies the local file to a local .env file that ganache will use to deterministically create test accounts to make local development easier.
 
-4. `cd client && yarn install`
+4. `yarn install`
+
+5. `cd client && yarn install`
 
 
-5. `cd .. && yarn start`
+6. `cd .. && yarn start`
 
 The start script will do the following:
   • Start ganache, importing any accounts from the .env file
@@ -31,7 +33,7 @@ The start script will do the following:
   • Build the graph-node mappings and deploy them to the graph-node
   • Copy the truffle build artefacts to the client for interaction with the contracts (ABIs)
 
-6. In a new terminal window `yarn client`
+7. In a new terminal window `yarn client`
 
 This command will run the create-react-app and host the client at localhost:3000
 

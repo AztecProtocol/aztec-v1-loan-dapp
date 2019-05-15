@@ -13,11 +13,11 @@ The code base is split into 3 main folders.
 
 This repo requires the following minimum versions installed in the developer enviroment:
 
-Truffle v5.0.12 (core: 5.0.12)
-Solidity - 0.5.4 (solc-js)
-Node v11.13.0
-Web3.js v1.0.0-beta.37
-Yarn - 1.15
+Truffle v5.0.12 (core: 5.0.12)<br />
+Solidity - 0.5.4 (solc-js)<br />
+Node v11.13.0<br />
+Web3.js v1.0.0-beta.37<br />
+Yarn - 1.15<br />
 
 Getting started:
 

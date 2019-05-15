@@ -29,7 +29,7 @@ This repo requires the following minimum versions installed in the developer env
 
 ### Getting started:
 
-1. `git clone git@github.com:CreditMint/loan-dapp-starter-kit.git`
+1. `git clone git@github.com:AztecProtocol/loan-dapp-starter-kit.git`
 2. `cd loan-dapp-starter-kit`
 
 3. `mv .env.test .env`

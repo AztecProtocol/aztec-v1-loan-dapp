@@ -2,33 +2,36 @@
 # yarn lockfile v1
 
 
-"@aztec/contract-artifacts@^1.5.1":
-  version "1.9.1"
-  resolved "https://registry.yarnpkg.com/@aztec/contract-artifacts/-/contract-artifacts-1.9.1.tgz#3d181ed27d9a24756e01acd96e2d665ec61924eb"
-  integrity sha512-2QLUlqj3RYkFFr17hBa4Doad45ytTuikl/hSybmkfx0h2SJynyLO83fk9Ow8UEjfsF1pvNOO00jTWMqVfsSqYQ==
-
-"@aztec/dev-utils@^1.7.0":
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/@aztec/dev-utils/-/dev-utils-1.8.0.tgz#49edaf8920918336c8692f8044f0fcc0dcd23707"
-  integrity sha512-8y8mG7JoBbtcCRClTJOmHipCVshmPOCUoVBl8H9lYv+5v7dETxVipJPUGl3JoFDBd7SDOtY0OmBpS4zNXzdbeg==
+"@aztec/dev-utils@1.9.0":
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/@aztec/dev-utils/-/dev-utils-1.9.0.tgz#84fda7fcfd913ec461da9db956d16a3e3e5d6b2d"
+  integrity sha512-Poy51CU5A0YRb8GlCRNrHkWP71EMgc/l6YggaBHrRHGxyZA1eTiNUOYh+FlHSjBhZ2XOwhoWBl/tBwHUJ+BR7A==
   dependencies:
     bn.js "^4.11.8"
 
-"@aztec/protocol@^0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@aztec/protocol/-/protocol-0.6.0.tgz#a77af1fc32f5ba08dfdc66bdb046db6f5c251983"
-  integrity sha512-rJzn06UBis7TwAu0d1xrRNrxPEduSnijGMXywMfm/uP3nVplMty1JhsgYD0CWscC64LQXKI+VtKdid6xQIwLrA==
+"@aztec/protocol@0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@aztec/protocol/-/protocol-0.7.0.tgz#4a9ee2c7b9f72286737c012fc569bb2881e3a693"
+  integrity sha512-q4wTu9IiBttIeE/jc5g1fYj3g0OFTkOWjEa+ZQ9cuB7mg0+gdKM4+B908cTmuBmsOUL9PXPFVZ13uikUfPgP2Q==
   dependencies:
     openzeppelin-solidity "2.2.0"
 
-"@aztec/secp256k1@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@aztec/secp256k1/-/secp256k1-1.0.0.tgz#901005ea84941195ad82d380fbf011bc57c4ebed"
-  integrity sha512-qqrK9dIoNbuNDPyGRNKH25ubAfXMKawv2WsorqhECvHuF6ZZyR1EaQTgGSVVT5psRwVQaIkVCwP/x5q+PGABRw==
+"@aztec/secp256k1@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@aztec/secp256k1/-/secp256k1-1.0.1.tgz#9e3b2f982b9e11e123513479f7eb277d3a426216"
+  integrity sha512-yKUX85V4KMdJq+nj0bJz9UYqzYK45rn+MOPoZiAnbbQX5f/rFyBiBuLBeuJ16kPH8nXAN9c8efVojaAf1OPYBw==
   dependencies:
     bn.js "^4.11.8"
     elliptic "^6.4.1"
-    web3-utils "1.0.0-beta.52"
+    web3-utils "1.0.0-beta.55"
+
+"@aztec/typed-data@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@aztec/typed-data/-/typed-data-1.0.1.tgz#9ad52fce8a399a7b43fa62078ed402d039d80ea2"
+  integrity sha512-jywxy8LJUlB9KrF4Goo8boWnuBu6yLpFu3mYIcaUmApz0JEgWDBMoK8k67bsZwuzKTJA1nmaVr4VMDi5XM9Vfw==
+  dependencies:
+    web3-eth-abi "1.0.0-beta.55"
+    web3-utils "1.0.0-beta.55"
 
 "@babel/cli@^7.2.3":
   version "7.4.4"
@@ -1320,18 +1323,20 @@ axios@^0.18.0:
     follow-redirects "^1.3.0"
     is-buffer "^1.1.5"
 
-aztec.js@^0.8.0:
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/aztec.js/-/aztec.js-0.8.0.tgz#c5a6414664cf338b82ffe974ac843e0ed2bb7f15"
-  integrity sha512-b8TV4JG70mfQXmmuM6Zk2GjI8cAMqFSKb02IIxn9TJ4GbVPQn9WGPCj1W9teY92YGPE5BQQTAKeVLzJgtfuPbA==
+aztec.js@0.9.0:
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/aztec.js/-/aztec.js-0.9.0.tgz#ff5bc065e195824b94df2553498c7d4cdea0d0ce"
+  integrity sha512-KHsV9zHJ+/kOsoZEvPe+N/btH/m8V9CV2p0CXH5kCr6k7R72lFaW9hlY5sshTgmVPmRQzAc4aMrWMEJxTQsXyQ==
   dependencies:
+    "@aztec/dev-utils" "1.9.0"
+    "@aztec/secp256k1" "1.0.1"
+    "@aztec/typed-data" "1.0.1"
     bn.js "^4.11.8"
     cross-fetch "^3.0.2"
     elliptic "^6.4.1"
     ethereumjs-abi "^0.6.7"
     ethereumjs-util "^6.1.0"
-    web3-eth-abi "1.0.0-beta.50"
-    web3-utils "1.0.0-beta.50"
+    web3-utils "1.0.0-beta.55"
 
 babel-code-frame@^6.26.0:
   version "6.26.0"
@@ -11064,16 +11069,6 @@ web3-eth-abi@1.0.0-beta.35:
     web3-core-helpers "1.0.0-beta.35"
     web3-utils "1.0.0-beta.35"
 
-web3-eth-abi@1.0.0-beta.50:
-  version "1.0.0-beta.50"
-  resolved "https://registry.yarnpkg.com/web3-eth-abi/-/web3-eth-abi-1.0.0-beta.50.tgz#52ca509257648c6088aa9d8874d6ea5f249c6de7"
-  integrity sha512-Nwm1HL3xBbrs43j/9V3gH1CJWWR7jyTDSE7PIkjYVjwgygAjlHPMHzuzGffoFMp2tSQ2DywCGmXAY5I5+vznZw==
-  dependencies:
-    "@babel/runtime" "^7.3.1"
-    ethers "^4.0.27"
-    lodash "^4.17.11"
-    web3-utils "1.0.0-beta.50"
-
 web3-eth-abi@1.0.0-beta.55:
   version "1.0.0-beta.55"
   resolved "https://registry.yarnpkg.com/web3-eth-abi/-/web3-eth-abi-1.0.0-beta.55.tgz#69250420039346105a3d0f899c0a8a53be926f97"
@@ -11376,38 +11371,6 @@ web3-utils@1.0.0-beta.35:
     number-to-bn "1.7.0"
     randomhex "0.1.5"
     underscore "1.8.3"
-    utf8 "2.1.1"
-
-web3-utils@1.0.0-beta.50:
-  version "1.0.0-beta.50"
-  resolved "https://registry.yarnpkg.com/web3-utils/-/web3-utils-1.0.0-beta.50.tgz#ed12454d3d2727d3b77695c1899ad3abbef303af"
-  integrity sha512-xGhM/YkepK2x0iMYUl/sws58LzTbodjMGlhZxrCZLZxJ0DoaDyk3UdmZ6aCSCwVTFg4hlVj3doaIhWnwGfhhpQ==
-  dependencies:
-    "@babel/runtime" "^7.3.1"
-    "@types/bn.js" "^4.11.4"
-    "@types/node" "^10.12.18"
-    bn.js "4.11.8"
-    eth-lib "0.2.8"
-    ethjs-unit "^0.1.6"
-    lodash "^4.17.11"
-    number-to-bn "1.7.0"
-    randomhex "0.1.5"
-    utf8 "2.1.1"
-
-web3-utils@1.0.0-beta.52:
-  version "1.0.0-beta.52"
-  resolved "https://registry.yarnpkg.com/web3-utils/-/web3-utils-1.0.0-beta.52.tgz#27f9beeac3e1ea981eba9824d79e2971f156eebc"
-  integrity sha512-WdHyzPcZu/sOnNrkcOZT20QEX9FhwD9OJJXENojQNvMK2a1xo3n8JWBcC2gzAGwsa0Aah6z2B3Xwa1P//8FaoA==
-  dependencies:
-    "@babel/runtime" "^7.3.1"
-    "@types/bn.js" "^4.11.4"
-    "@types/node" "^10.12.18"
-    bn.js "4.11.8"
-    eth-lib "0.2.8"
-    ethjs-unit "^0.1.6"
-    lodash "^4.17.11"
-    number-to-bn "1.7.0"
-    randomhex "0.1.5"
     utf8 "2.1.1"
 
 web3-utils@1.0.0-beta.55:

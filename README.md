@@ -27,7 +27,7 @@ This repo requires the following minimum versions installed in the developer env
 <br />
 `Yarn - 1.15`<br />
 
-Getting started:
+### Getting started:
 
 1. `git clone git@github.com:CreditMint/loan-dapp-starter-kit.git`
 2. `cd loan-dapp-starter-kit`

@@ -1,0 +1,62 @@
+{
+  "dependencies": {
+    "@aztec/contract-artifacts": "^1.5.1",
+    "@aztec/dev-utils": "^1.7.0",
+    "@aztec/protocol": "^0.6.0",
+    "@aztec/secp256k1": "^1.0.0",
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.4.0",
+    "@babel/node": "^7.2.2",
+    "@babel/plugin-proposal-class-properties": "^7.4.0",
+    "@babel/plugin-proposal-object-rest-spread": "^7.4.0",
+    "@babel/plugin-transform-runtime": "^7.4.0",
+    "@babel/preset-env": "^7.4.2",
+    "@babel/register": "^7.4.0",
+    "@babel/runtime": "^7.4.2",
+    "@graphprotocol/graph-cli": "^0.11.2",
+    "@graphprotocol/graph-ts": "^0.11.0",
+    "@leizciw/creditmint-ui": "^1.0.3",
+    "aztec.js": "^0.8.0",
+    "bignumber.js": "^8.1.1",
+    "chalk": "^2.4.2",
+    "detect-port": "^1.3.0",
+    "dotenv": "^7.0.0",
+    "eslint": "^5.15.3",
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-import-resolver-babel-module": "^5.0.1",
+    "eslint-plugin-import": "^2.16.0",
+    "eslint-plugin-mocha": "^5.3.0",
+    "eth-crypto": "^1.3.3",
+    "eth-ecies": "^1.0.3",
+    "ganache-core": "^2.5.4-beta.2",
+    "husky": "^2.2.0",
+    "js-yaml": "^3.13.0",
+    "kill-port": "^1.4.0",
+    "moment": "^2.24.0",
+    "openzeppelin-solidity": "^2.2.0",
+    "solhint": "^2.0.0",
+    "solium": "^1.2.3",
+    "terminal-kit": "^1.28.0",
+    "truffle": "^5.0.8",
+    "web3": "^1.0.0-beta.51"
+  },
+  "scripts": {
+    "build": "npm run compile && npm run migrate && npm run copy && npm run graph start",
+    "client": "cd client && npm start",
+    "compile": "babel-node scripts/run compile",
+    "copy": "babel-node scripts/run copy",
+    "docker": "babel-node scripts/run docker",
+    "ganache": "babel-node scripts/run ganache",
+    "graph": "babel-node scripts/run graph",
+    "migrate": "babel-node scripts/run migrate",
+    "resetdb": "babel-node scripts/run resetdb",
+    "start": "babel-node scripts/run start",
+    "test": "NODE_ENV=test babel-node scripts/run test"
+  },
+  "config": {
+    "mnemonic": "delay jaguar benefit bullet shock split short grape sudden embrace appear noodle"
+  },
+  "devDependencies": {
+    "aztec.js": "^0.8.0"
+  }
+}

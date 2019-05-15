@@ -1,0 +1,51 @@
+.LoanPlaceholder {
+  $mask: rgba(255, 255, 255, 0);
+  $light: rgba(255, 255, 255, 0.5);
+  width: 100%;
+  height: 100%;
+  background-color: #F6F7F9;
+  background-image: linear-gradient(
+    120deg,
+    $mask 0%,
+    $light 10%,
+    $light 20%,
+    $mask 30%,
+    $mask 50%,
+    $light 60%,
+    $light 70%,
+    $mask 80%
+  );
+  background-size: 200%;
+
+  &.title {
+    margin: 4px 0;
+    width: 160px;
+    height: 28px;
+  }
+
+  &.date {
+    width: 90px;
+    height: 24px;
+  }
+
+  &.label {
+    margin-top: 4px;
+    width: 80px;
+    height: 12px;
+  }
+
+  &.term {
+    margin-top: 8px;
+    width: 36px;
+    height: 16px;
+  }
+
+  &.tag {
+    width: 40%;
+    height: 20px;
+  }
+
+  &.button {
+    height: 32px;
+  }
+}

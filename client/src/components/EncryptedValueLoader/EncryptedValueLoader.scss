@@ -1,0 +1,12 @@
+.EncryptedValueLoader_locked-loader-wrapper {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+}
+
+.EncryptedValueLoader_lock {
+  position: absolute !important;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+}

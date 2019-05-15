@@ -1,0 +1,51 @@
+.App {
+  display: flex;
+  flex-direction: column;
+  font-weight: 300;
+  width: 100%;
+  height: 100vh;
+}
+
+.App-header {
+  display: flex;
+  flex-shrink: 0;
+  justify-content: space-between;
+  align-items: center;
+  height: 64px;
+}
+
+.App-content {
+  position: relative;
+  height: 100%;
+  flex: 1 1 auto;
+  overflow: auto;
+}
+
+.App-scrollable-content {
+  height: 100%;
+  overflow: auto;
+}
+
+.flex-fixed {
+  flex-shrink: 0;
+}
+
+.flex-free-expand {
+  flex: 1 1 auto;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.expand {
+  width: 100%;
+}
+
+.stretch {
+  height: 100%;
+}
+
+.break-word {
+  word-break: break-all;
+}

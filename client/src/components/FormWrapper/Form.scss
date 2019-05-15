@@ -1,0 +1,10 @@
+.Form-wrapper {
+  margin: 0 auto;
+  width: 600px;
+}
+
+@media all and (max-width: 600px) {
+  .Form-wrapper {
+    width: 100%;
+  }
+}

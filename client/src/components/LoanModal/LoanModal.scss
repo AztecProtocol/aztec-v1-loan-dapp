@@ -1,0 +1,5 @@
+.LoanModal_loan-item-col {
+  & + .LoanModal_loan-item-col {
+    border-left: 1px solid #edf2f9;
+  }
+}

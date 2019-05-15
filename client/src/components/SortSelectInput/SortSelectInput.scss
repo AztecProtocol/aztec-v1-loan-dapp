@@ -1,0 +1,13 @@
+.SortSelectInput_wrapper {
+  position: relative;
+  display: inline-block;
+
+  &.focused,
+  &:hover {
+    background: #F9fbfd;
+
+    .SortSelectInput_value {
+      color: rgb(74,144,226);
+    }
+  }
+}

@@ -1,0 +1,28 @@
+.Transferring_item {
+  width: calc(50% - 60px);
+}
+
+.Transferring_dot {
+  animation: transferring 1.2s infinite ease-in-out;
+
+  &.dot_0 {
+    animation-delay: 0s;
+  }
+  &.dot_1 {
+    animation-delay: 0.2s;
+  }
+  &.dot_2 {
+    animation-delay: 0.4s;
+  }
+}
+
+@keyframes transferring {
+  0%,
+  80%,
+  100% {
+    color: #1BD1A6;
+  }
+  40% {
+    color: rgba(0, 0, 0, 0.1);
+  }
+}

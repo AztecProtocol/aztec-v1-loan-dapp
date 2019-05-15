@@ -14,9 +14,9 @@ const {
     BOGUS_PROOF,
     JOIN_SPLIT_PROOF,
     MINT_PROOF,
-    BILATERAL_SWAP_PROOF = '65794',
-    DIVIDEND_COMPUTATION_PROOF = '66561',
-    PRIVATE_RANGE_PROOF = '66562',
+    BILATERAL_SWAP_PROOF,
+    DIVIDEND_PROOF,
+    PRIVATE_RANGE_PROOF,
   },
 } = utils;
 
@@ -33,7 +33,7 @@ module.exports = async (deployer, network) => {
     await ACEContract.setCommonReferenceString(constants.CRS);
     await ACEContract.setProof(MINT_PROOF, AdjustSupplyContract.address);
     await ACEContract.setProof(BILATERAL_SWAP_PROOF, BilateralSwap.address);
-    await ACEContract.setProof(DIVIDEND_COMPUTATION_PROOF, DividendComputation.address);
+    await ACEContract.setProof(DIVIDEND_PROOF, DividendComputation.address);
     await ACEContract.setProof(JOIN_SPLIT_PROOF, JoinSplit.address);
     await ACEContract.setProof(PRIVATE_RANGE_PROOF, PrivateRange.address);
   }

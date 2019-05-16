@@ -92,10 +92,8 @@ export default function start({
   });
 
   const handleError = onError
-    || ((error) => {
-      errorLog(error);
+    || (() => {
       if (onClose) {
-        successLog('handleError onClose');
         onClose();
       }
     });
@@ -112,15 +110,25 @@ export default function start({
     });
   };
 
+  const doCloseDocker = makeCloseChildProcessCallback('docker');
+
   runningProcesses.ganache = ganacheInstance({
     onClose: makeCloseChildProcessCallback('ganache'),
     onError: handleError,
   }).next(async () => {
     log('Recreating database...');
-    await taskPromise(resetdb);
+    try {
+      await taskPromise(resetdb);
+    } catch (error) {
+      handleClose();
+      return;
+    }
 
     runningProcesses.docker = graphNodeDockerInstance({
-      onClose: makeCloseChildProcessCallback('docker'),
+      onClose: (code) => {
+        if (code === null) return;
+        doCloseDocker();
+      },
       onError: handleError,
     });
 

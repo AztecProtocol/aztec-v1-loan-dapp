@@ -19,8 +19,8 @@ const childProcessHandler = (childProcess, {
 }) => {
   let hasStarted = false;
   let onStartCallbacks = [];
-  const stashedOutputs = [];
-  const stashedErrors = [];
+  let stashedOutputs = [];
+  let stashedErrors = [];
 
   const registerOnStartCallbacks = (cb) => {
     if (Array.isArray(cb)) {
@@ -40,6 +40,8 @@ const childProcessHandler = (childProcess, {
     }
     nextInstance.next([...onStartCallbacks]);
     onStartCallbacks = [];
+    stashedOutputs = null;
+    stashedErrors = null;
   };
 
   const triggerNext = async (...params) => {

@@ -19,26 +19,27 @@ export default function resetdb({
   } = graphConfig.databases[network] || {};
   let containerId;
 
+  const triggerFetalError = () => {
+    if (onError) {
+      onError();
+    }
+  };
+
   return instance(
-    'docker ps -aqf "name=graph-node"',
-    {
-      onError,
-    },
+    'docker -v',
   ).next((data) => {
+    if (!data) {
+      errorLog('Docker is not installed.');
+      triggerFetalError();
+      return;
+    }
+
+    return instance('docker ps -aqf "name=graph-node"');
+  }).next((data) => {
     const graphNodeContainerId = data.replace('\n', '');
-    return instance(
-      `docker stop ${graphNodeContainerId}`,
-      {
-        onError,
-      },
-    );
+    return instance(`docker stop ${graphNodeContainerId}`);
   }).next(() => { // eslint-disable-line arrow-body-style
-    return instance(
-      'docker ps -aqf "name=postgres"',
-      {
-        onError,
-      },
-    );
+    return instance('docker ps -aqf "name=postgres"');
   }).next((data) => {
     containerId = data.replace('\n', '');
     if (!containerId) {
@@ -54,16 +55,14 @@ export default function resetdb({
     );
   }).next((data, error) => {
     if (!error) {
-      successLog(data);
+      log(data || `Successfully dropped database '${name}'.`);
     } else if (error.includes('does not exist')) {
-      log(`No database named ${name}.`);
+      log(`No database named '${name}'.`);
     } else {
       errorLog('error', error);
-
       if (onClose) {
         onClose();
       }
-
       return;
     }
 
@@ -72,7 +71,8 @@ export default function resetdb({
     );
   }).next((data, error) => {
     if (error) {
-      errorLog(`Cannot create db '${name}'.`, error);
+      errorLog(`Cannot create database '${name}'.`, error);
+      triggerFetalError();
       return;
     }
     successLog(`Successfully created new database '${name}'.`);

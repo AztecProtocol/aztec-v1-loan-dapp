@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import {
   MaskedNumberInput,
   Text,
+  Icon,
 } from '@aztec/guacamole-ui';
 import {
   makeFormat,
@@ -18,6 +19,7 @@ import {
 import LoanModal from '../LoanModal';
 import Message from '../Modal/Message';
 import InputRow from '../Modal/InputRow';
+import Transferring from '../Transferring';
 
 class WithdrawBalanceModal extends PureComponent {
   constructor(props) {
@@ -98,7 +100,7 @@ class WithdrawBalanceModal extends PureComponent {
     this.withdrawBalance();
   };
 
-  withdrawBalance = async() => {
+  withdrawBalance = async () => {
     const {
       amount,
     } = this.state;
@@ -141,99 +143,62 @@ class WithdrawBalanceModal extends PureComponent {
     }
   };
 
-  renderSuccessModal() {
+  renderContent() {
     const {
-      loan,
-      notionalValue,
-    } = this.props;
-    const {
+      error,
+      justSubmmited,
+      isSubmitting,
       amount,
     } = this.state;
 
-    return (
-      <LoanModal
-        key="modal"
-        title="Balance Withdrawn"
-        loan={loan}
-        notionalValue={notionalValue}
-        onClose={this.handleCloseModal}
-      >
-        <Message
-          type="success"
-          message={`${this.format(amount, { showUnit: true })} Withdrawn!`}
-        />
-      </LoanModal>
-    );
-  }
-
-  renderErrorModal() {
-    const {
-      loan,
-      notionalValue,
-    } = this.props;
-    const {
-      error,
-    } = this.state;
-
-    return (
-      <LoanModal
-        key="modal"
-        title="Balance Withdrawn"
-        loan={loan}
-        notionalValue={notionalValue}
-        submitButtonText="Try Again"
-        onSubmit={this.handleClearError}
-        onClose={this.handleCloseModal}
-      >
+    if (error) {
+      return (
         <Message
           type="error"
           message={error}
         />
-      </LoanModal>
-    );
-  }
-
-  renderModal() {
-    const {
-      showModal,
-      justSubmmited,
-      error,
-    } = this.state;
-
-    if (!showModal) return null;
+      );
+    }
 
     if (justSubmmited) {
-      return this.renderSuccessModal();
+      return (
+        <Message
+          type="success"
+          message={`${this.format(amount, { showUnit: true })} Withdrawn!`}
+        />
+      );
     }
 
-    if (error) {
-      return this.renderErrorModal();
+    if (isSubmitting) {
+      return (
+        <Transferring
+          description={`Withdrawing ${this.format(amount, { showUnit: true })}`}
+          from={(
+            <Icon
+              name="vpn_lock"
+              size="l"
+              color="grey"
+            />
+          )}
+          to={(
+            <Icon
+              name="account_box"
+              size="l"
+              color="grey"
+            />
+          )}
+        />
+      );
     }
 
     const {
-      loan,
-      notionalValue,
       balanceValue,
       payableInterest,
     } = this.props;
-    const {
-      isSubmitting,
-      amount,
-    } = this.state;
     const overdueInterest = payableInterest - balanceValue;
 
     return (
-      <LoanModal
-        key="modal"
-        title="Withdraw Balance"
-        loan={loan}
-        notionalValue={notionalValue}
-        submitButtonText="Withdraw"
-        closeButtonText="Cancel"
-        onClose={this.handleCloseModal}
-        onSubmit={this.handleSubmit}
-        isSubmitting={isSubmitting}
-      >
+      <div>
         <InputRow
           label="Account Balance:"
           value={this.format(balanceValue)}
@@ -264,6 +229,51 @@ class WithdrawBalanceModal extends PureComponent {
             onChange={this.handleChangeAmount}
           />
         </InputRow>
+      </div>
+    );
+  }
+
+  renderModal() {
+    const {
+      showModal,
+      justSubmmited,
+      error,
+    } = this.state;
+
+    if (!showModal) return null;
+
+    let closeButtonText = 'Cancel';
+    let submitButtonText = 'Withdraw';
+    let onSubmit = this.handleSubmit;
+    if (error) {
+      submitButtonText = 'Try Again';
+      onSubmit = this.handleClearError;
+    } else if (justSubmmited) {
+      closeButtonText = 'Close';
+      onSubmit = null;
+    }
+
+    const {
+      loan,
+      notionalValue,
+    } = this.props;
+    const {
+      isSubmitting,
+    } = this.state;
+
+    return (
+      <LoanModal
+        key="modal"
+        title="Withdraw Balance"
+        loan={loan}
+        notionalValue={notionalValue}
+        submitButtonText={submitButtonText}
+        closeButtonText={closeButtonText}
+        onClose={this.handleCloseModal}
+        onSubmit={onSubmit}
+        isSubmitting={isSubmitting}
+      >
+        {this.renderContent()}
       </LoanModal>
     );
   }

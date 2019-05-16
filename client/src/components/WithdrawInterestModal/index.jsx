@@ -391,7 +391,7 @@ class WithdrawInterestModal extends PureComponent {
             )}
             to={(
               <Icon
-                name="person"
+                name="account_box"
                 size="l"
                 color="grey"
               />

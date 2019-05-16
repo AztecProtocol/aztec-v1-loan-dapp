@@ -2,7 +2,13 @@
 
 const parseValue = (value) => {
   if (typeof value.toNumber === 'function') {
-    return value.toNumber();
+    let num;
+    try {
+      num = value.toNumber();
+    } catch (error) {
+      num = value;
+    }
+    return num;
   }
 
   if (typeof value !== 'object') {
@@ -59,7 +65,7 @@ class Web3Event {
 
   hasBeenCalledWith(expected) {
     if (!this.hasBeenCalled) {
-      assert.euqal({}, expected);
+      assert.equal({}, expected);
       return;
     }
 
@@ -70,7 +76,7 @@ class Web3Event {
 
   hasBeenCalledExactlyWith(expected) {
     if (!this.hasBeenCalled) {
-      assert.euqal({}, expected);
+      assert.equal({}, expected);
       return;
     }
 

@@ -13,7 +13,6 @@ contract Loan is ZkAssetMintable {
 
 
   IZkAsset public settlementToken;
-  string viewingKey;
   // [0] interestRate
   // [1] interestPeriod
   // [2] duration
@@ -42,7 +41,6 @@ contract Loan is ZkAssetMintable {
 
   constructor(
     bytes32 _notional,
-    string memory _viewingKey,
     uint256[] memory _loanVariables,
     address _borrower,
     address _aceAddress,
@@ -51,7 +49,6 @@ contract Loan is ZkAssetMintable {
       loanVariables.loanFactory = msg.sender;
       loanVariables.notional = _notional;
       loanVariables.id = address(this);
-      viewingKey = _viewingKey;
       loanVariables.interestRate = _loanVariables[0];
       loanVariables.interestPeriod = _loanVariables[1];
       loanVariables.duration = _loanVariables[2];
@@ -132,7 +129,7 @@ contract Loan is ZkAssetMintable {
   }
 
   function repayLoan(
-    bytes memory _proof1, 
+    bytes memory _proof1,
     bytes memory _proof2
   ) public {
     LoanUtilities.onlyBorrower(msg.sender, borrower);

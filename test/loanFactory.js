@@ -1,4 +1,4 @@
-/* global artifacts contract assert */
+/* global contract assert */
 import dotenv from 'dotenv';
 import web3Events from './helpers/web3Events';
 import blockTime from './helpers/blockTime';
@@ -6,91 +6,53 @@ import {
   assertRevert,
   assertInvalidOpcode,
 } from './helpers/exceptions';
+import LoanService from './helpers/LoanService';
 
-const aztec = require('aztec.js');
 const secp256k1 = require('@aztec/secp256k1');
-
-const ACE = artifacts.require('@aztec/protocol/contracts/ACE/ACE.sol');
-const LoanDapp = artifacts.require('./LoanDapp.sol');
-const SettlementToken = artifacts.require('./SettlementToken.sol');
 
 dotenv.config();
 
 contract('LoanDapp', async () => {
   let loanDappContract;
-  let settlementTokenContract;
-  const settlementCurrencyId = 1;
+  let loan;
 
-  const defaultLoanData = {
-    notionalValue: 10000,
-    viewingKey: '0x0368bac945f9aab61b51539fc295f0319b47cd89fb850dfb59a5676acad586d0c9',
-    interestRate: 1000, // 10%
-    interestPeriod: 1 * 86400,
-    loanDuration: 10 * 86400,
-  };
-
-  const contractOwner = secp256k1.accountFromPrivateKey(process.env.GANACHE_TESTING_ACCOUNT_0);
-  const borrower = secp256k1.accountFromPrivateKey(process.env.GANACHE_TESTING_ACCOUNT_1);
-  const stranger = secp256k1.accountFromPrivateKey(process.env.GANACHE_TESTING_ACCOUNT_2);
+  const stranger = secp256k1.accountFromPrivateKey(process.env.GANACHE_TESTING_ACCOUNT_3);
 
   beforeEach(async () => {
-    const ace = await ACE.deployed();
-    loanDappContract = await LoanDapp.new(ace.address);
-    settlementTokenContract = await SettlementToken.new();
+    loan = new LoanService();
+    await loan.advanceToStep('newLoanDappContract');
+    ({ loanDappContract } = loan);
   });
 
-  const addSettlementCurrency = async ({
-    id = settlementCurrencyId,
-    user = contractOwner,
-  } = {}) =>
-    loanDappContract.addSettlementCurrency(
-      id,
-      settlementTokenContract.address,
-      {
-        from: user.address,
-      },
-    );
-
-  const getLoanProofData = async ({
-    user = borrower,
-  } = {}) => {
-    const {
-      publicKey,
-    } = user;
-    const notionalNote = await aztec.note.create(publicKey, defaultLoanData.notionalValue);
-    const {
-      noteHash: notionalNoteHash,
-    } = notionalNote.exportNote();
-
-    const newTotalNote = await aztec.note.create(publicKey, defaultLoanData.notionalValue);
-    const oldTotalNote = await aztec.note.createZeroValueNote();
-    const {
-      proofData,
-    } = aztec.proof.mint.encodeMintTransaction({
-      newTotalMinted: newTotalNote,
-      oldTotalMinted: oldTotalNote,
-      adjustedNotes: [notionalNote],
-      senderAddress: loanDappContract.address,
-    });
-
-    return {
-      notionalNoteHash,
-      proofData,
-    };
-  };
-
   it('should allow owner to add settlement currency', async () => {
+    const {
+      settlementCurrencyId,
+    } = loan;
     const prevAddress = await loanDappContract.settlementCurrencies(settlementCurrencyId);
     assert.equal(+prevAddress, 0);
 
-    await addSettlementCurrency();
+    const newTokenContract = await loan.newSettlementTokenContract();
+    await loan.addSettlementCurrency({
+      settlementCurrencyId,
+      settlementTokenContract: newTokenContract,
+    });
 
     const currencyAddress = await loanDappContract.settlementCurrencies(settlementCurrencyId);
-    assert.equal(currencyAddress, settlementTokenContract.address);
+    assert.equal(currencyAddress, newTokenContract.address);
   });
 
   it('should prevent non-owner to add settlement currency', async () => {
-    await assertRevert(addSettlementCurrency({
+    const {
+      settlementCurrencyId,
+      contractOwner,
+    } = loan;
+
+    const newTokenContract = await loan.newSettlementTokenContract();
+    assert.equal(stranger.address !== contractOwner.address, true);
+
+    await assertRevert(loan.addSettlementCurrency({
+      settlementCurrencyId,
+      settlementTokenContract: newTokenContract,
       user: stranger,
     }));
 
@@ -99,97 +61,76 @@ contract('LoanDapp', async () => {
   });
 
   it('should fire an event after adding a settlement currency', async () => {
-    const transaction = await addSettlementCurrency();
+    const {
+      settlementCurrencyId,
+    } = loan;
+
+    const newTokenContract = await loan.newSettlementTokenContract();
+
+    const transaction = await loan.addSettlementCurrency({
+      settlementCurrencyId,
+      settlementTokenContract: newTokenContract,
+    });
+
     const triggeredEvents = web3Events(transaction);
     assert.equal(triggeredEvents.count(), 1);
+
     triggeredEvents.event('SettlementCurrencyAdded').hasBeenCalledExactlyWith({
       id: settlementCurrencyId,
-      settlementAddress: settlementTokenContract.address,
+      settlementAddress: newTokenContract.address,
     });
   });
 
   it('should be able to create a loan', async () => {
-    await addSettlementCurrency();
+    await loan.advanceToStep('addSettlementCurrency');
 
     await assertInvalidOpcode(loanDappContract.loans(0));
 
-    const {
-      address,
-      publicKey,
-    } = borrower;
-    const {
-      notionalNoteHash,
-      proofData,
-    } = await getLoanProofData();
-
-    await loanDappContract.createLoan(
-      notionalNoteHash,
-      defaultLoanData.viewingKey,
-      publicKey,
-      [
-        defaultLoanData.interestRate,
-        defaultLoanData.interestPeriod,
-        defaultLoanData.loanDuration,
-        settlementCurrencyId,
-      ],
-      proofData,
-      {
-        from: address,
-      },
-    );
+    await loan.createLoan();
 
     const firstLoanAddress = await loanDappContract.loans(0);
     assert.equal(firstLoanAddress > 0, true);
   });
 
   it('should trigger an event after creating a loan', async () => {
-    await addSettlementCurrency();
+    await loan.advanceToStep('addSettlementCurrency');
 
     await assertInvalidOpcode(loanDappContract.loans(0));
 
+    const transaction = await loan.createLoan();
     const {
-      address,
-      publicKey,
-    } = borrower;
-    const {
-      notionalNoteHash,
-      proofData,
-    } = await getLoanProofData();
-
-    const transaction = await loanDappContract.createLoan(
-      notionalNoteHash,
-      defaultLoanData.viewingKey,
-      publicKey,
-      [
-        defaultLoanData.interestRate,
-        defaultLoanData.interestPeriod,
-        defaultLoanData.loanDuration,
-        settlementCurrencyId,
-      ],
-      proofData,
-      {
-        from: address,
-      },
-    );
+      loanData,
+      settlementCurrencyId,
+      borrower,
+    } = loan;
 
     const triggeredEvents = web3Events(transaction);
-    assert.equal(triggeredEvents.count(), 1);
+    assert.equal(triggeredEvents.count(), 2);
 
     const firstLoanAddress = await loanDappContract.loans(0);
     const timestamp = await blockTime.fromTransaction(transaction);
 
-    triggeredEvents.event('LoanCreated').hasBeenCalledWith({
+    const createdEvent = triggeredEvents.event('LoanCreated');
+    createdEvent.hasBeenCalledWith({
       id: firstLoanAddress,
-      notional: notionalNoteHash,
-      viewingKey: defaultLoanData.viewingKey,
+      notional: loanData.notionalNoteHash,
       loanVariables: [
-        defaultLoanData.interestRate,
-        defaultLoanData.interestPeriod,
-        defaultLoanData.loanDuration,
+        loanData.interestRate,
+        loanData.interestPeriod,
+        loanData.loanDuration,
         settlementCurrencyId,
       ],
-      borrower: address,
+      borrower: borrower.address,
       createdAt: timestamp,
     });
+
+    const approvedEvent = triggeredEvents.event('NoteAccessApproved');
+    approvedEvent.hasBeenCalledWith({
+      note: loanData.notionalNoteHash,
+      user: borrower.address,
+      sharedSecret: loanData.viewingKey,
+    });
+    const noteAccessId = approvedEvent.param('accessId');
+    assert.equal(!!noteAccessId.toString(), true);
   });
 });

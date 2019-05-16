@@ -10,7 +10,7 @@ import {
 
 const RequestCheckbox = ({
   viewRequest: {
-    lenderAddress,
+    address,
   },
   selected,
   onSelect,
@@ -21,7 +21,7 @@ const RequestCheckbox = ({
     padding="s 0"
     background={selected ? 'grey-lightest' : ''}
     borderRadius="default"
-    onClick={!approved ? () => onSelect(lenderAddress) : undefined}
+    onClick={!approved ? () => onSelect(address) : undefined}
   >
     <FlexBox
       valign="center"
@@ -49,7 +49,7 @@ const RequestCheckbox = ({
         padding="0 s"
       >
         <Text
-          text={lenderAddress || ''}
+          text={address || ''}
           size="xxs"
         />
       </Block>
@@ -59,7 +59,7 @@ const RequestCheckbox = ({
 
 RequestCheckbox.propTypes = {
   viewRequest: PropTypes.shape({
-    lenderAddress: PropTypes.string.isRequired,
+    address: PropTypes.string.isRequired,
   }).isRequired,
   selected: PropTypes.bool,
   approved: PropTypes.bool,

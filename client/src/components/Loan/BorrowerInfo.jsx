@@ -40,12 +40,11 @@ const BorrowerInfo = ({
     case loanStatus('awaiting_settlement'): {
       const {
         viewRequests,
+        lenderAccess,
       } = loan;
-      const totalRequests = (viewRequests && viewRequests.length) || 0;
-      const unapprovedRequests = viewRequests
-        && viewRequests.filter(({
-          sharedSecret,
-        }) => !sharedSecret).length;
+      const totalRequests = viewRequests.length;
+      const approvedRequests = lenderAccess.length;
+      const unapprovedRequests = totalRequests - approvedRequests;
       infoCols.push(
         <LoanTermCol
           key="received-requests"
@@ -129,7 +128,8 @@ BorrowerInfo.propTypes = {
     lender: PropTypes.shape({
       address: PropTypes.string.isRequired,
     }),
-    viewRequests: PropTypes.array,
+    viewRequests: PropTypes.array.isRequired,
+    lenderAccess: PropTypes.array.isRequired,
   }).isRequired,
   notionalValue: PropTypes.number,
   balanceValue: PropTypes.number,

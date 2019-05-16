@@ -1,23 +1,18 @@
 import AuthService from '../helpers/AuthService';
 import isSameAddress from './isSameAddress';
-import transformViewRequestFromGraph from './transformViewRequestFromGraph';
 import transformLoanStatusFromGraph from './transformLoanStatusFromGraph';
 import transformNoteFromGraph from './transformNoteFromGraph';
-
-const retrieveLenderViewRequest = (viewRequests, currentAddress) =>
-  viewRequests && viewRequests.find(request =>
-    isSameAddress(request.lenderAddress, currentAddress));
 
 export default function transformLoanFromGraph({
   id,
   notional,
-  viewingKey,
   interestRate,
   interestPeriod,
   loanDuration,
   settlementCurrencyId,
   borrower,
   lender,
+  viewRequests,
   lenderAccess,
   startAt,
   balance,
@@ -29,18 +24,19 @@ export default function transformLoanFromGraph({
 }) {
   const currentAddress = AuthService.address;
 
-  const viewRequests = lenderAccess && lenderAccess.map(transformViewRequestFromGraph);
-  const viewRequest = retrieveLenderViewRequest(viewRequests, currentAddress);
-
   const role = isSameAddress(currentAddress, borrower.address)
     ? 'borrower'
     : 'lender';
+
+  const notionalNote = transformNoteFromGraph(notional, currentAddress);
 
   const status = transformLoanStatusFromGraph({
     role,
     onChainStatus,
     viewRequests,
-    viewRequest,
+    lenderAccess,
+    notionalNote,
+    currentAddress,
   });
 
   const balanceHistory = balance
@@ -49,16 +45,16 @@ export default function transformLoanFromGraph({
   return {
     id,
     address: id,
-    notional,
-    viewingKey,
+    role,
+    notionalNote,
     interestRate: +interestRate / 100,
     interestPeriod: +interestPeriod / 86400,
     loanDuration: +loanDuration / 86400,
     settlementCurrencyId,
     borrower,
     lender,
-    viewRequests,
-    viewRequest,
+    viewRequests: viewRequests || [],
+    lenderAccess: lenderAccess || [],
     status,
     createdAt: +createdAt * 1000,
     settledAt: +settledAt * 1000,
@@ -68,7 +64,7 @@ export default function transformLoanFromGraph({
       ? (+settledAt + +loanDuration) * 1000
       : 0,
     balanceHistory,
-    balance: balanceHistory
+    balanceNote: balanceHistory
       && balanceHistory.find(({ status }) => status === 'CREATED'),
   };
 };

@@ -109,7 +109,7 @@ class WithdrawBalanceModal extends PureComponent {
     } = this.props;
     const {
       address: loanAddress,
-      balance,
+      balanceNote,
       lender,
     } = loan;
 
@@ -117,7 +117,7 @@ class WithdrawBalanceModal extends PureComponent {
       const withdrawnAmount = await withdrawBalance({
         loanAddress,
         amount,
-        balanceSharedSecret: balance.sharedSecret,
+        balanceSharedSecret: balanceNote.sharedSecret,
         lender,
       });
 
@@ -300,7 +300,7 @@ WithdrawBalanceModal.propTypes = {
     loanDuration: PropTypes.number.isRequired,
     maturity: PropTypes.number.isRequired,
     settlementCurrencyId: PropTypes.string.isRequired,
-    balance: PropTypes.shape({
+    balanceNote: PropTypes.shape({
       sharedSecret: PropTypes.string,
     }),
   }).isRequired,

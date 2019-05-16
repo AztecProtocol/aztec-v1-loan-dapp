@@ -1,7 +1,14 @@
 const loanFields = `
   id
-  notional
-  viewingKey
+  notional {
+    id
+    access {
+      user {
+        address
+      }
+      sharedSecret
+    }
+  }
   interestRate
   interestPeriod
   settlementCurrencyId
@@ -14,12 +21,14 @@ const loanFields = `
     address
     publicKey
   }
+  viewRequests {
+    address
+    publicKey
+  }
   lenderAccess {
-    lender {
+    user {
       address
     }
-    lenderPublicKey
-    sharedSecret
   }
   balance {
     id

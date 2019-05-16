@@ -69,8 +69,8 @@ class MarkDefaultModal extends PureComponent {
     const {
       interestRate,
       interestPeriod,
-      viewRequest,
-      balance,
+      notionalNote,
+      balanceNote,
       borrower,
       settledAt,
       maturity,
@@ -86,8 +86,8 @@ class MarkDefaultModal extends PureComponent {
         borrower,
         settledAt,
         maturity,
-        notionalSharedSecret: viewRequest.sharedSecret,
-        balanceSharedSecret: balance.sharedSecret,
+        notionalSharedSecret: notionalNote.sharedSecret,
+        balanceSharedSecret: balanceNote.sharedSecret,
       });
 
       this.setState({
@@ -202,6 +202,12 @@ MarkDefaultModal.propTypes = {
     loanDuration: PropTypes.number.isRequired,
     maturity: PropTypes.number,
     settlementCurrencyId: PropTypes.string.isRequired,
+    notionalNote: PropTypes.shape({
+      sharedSecret: PropTypes.string.isRequired,
+    }).isRequired,
+    balanceNote: PropTypes.shape({
+      sharedSecret: PropTypes.string,
+    }),
   }).isRequired,
   notionalValue: PropTypes.number,
   payableInterest: PropTypes.number,

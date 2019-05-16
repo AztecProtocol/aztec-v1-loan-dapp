@@ -77,20 +77,16 @@ export class LoanCreated__Params {
     return this._event.parameters[2].value.toBytes();
   }
 
-  get viewingKey(): string {
+  get borrowerPublicKey(): string {
     return this._event.parameters[3].value.toString();
   }
 
-  get borrowerPublicKey(): string {
-    return this._event.parameters[4].value.toString();
-  }
-
   get loanVariables(): Array<BigInt> {
-    return this._event.parameters[5].value.toBigIntArray();
+    return this._event.parameters[4].value.toBigIntArray();
   }
 
   get createdAt(): BigInt {
-    return this._event.parameters[6].value.toBigInt();
+    return this._event.parameters[5].value.toBigInt();
   }
 }
 
@@ -107,7 +103,33 @@ export class ViewRequestCreated__Params {
     this._event = event;
   }
 
-  get id(): BigInt {
+  get loanId(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get lender(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+
+  get lenderPublicKey(): string {
+    return this._event.parameters[2].value.toString();
+  }
+}
+
+export class ViewRequestApproved extends EthereumEvent {
+  get params(): ViewRequestApproved__Params {
+    return new ViewRequestApproved__Params(this);
+  }
+}
+
+export class ViewRequestApproved__Params {
+  _event: ViewRequestApproved;
+
+  constructor(event: ViewRequestApproved) {
+    this._event = event;
+  }
+
+  get accessId(): BigInt {
     return this._event.parameters[0].value.toBigInt();
   }
 
@@ -115,37 +137,37 @@ export class ViewRequestCreated__Params {
     return this._event.parameters[1].value.toAddress();
   }
 
-  get lender(): Address {
+  get user(): Address {
     return this._event.parameters[2].value.toAddress();
   }
 
-  get lenderPublicKey(): string {
+  get sharedSecret(): string {
     return this._event.parameters[3].value.toString();
   }
 }
 
-export class ViewRequestAccepted extends EthereumEvent {
-  get params(): ViewRequestAccepted__Params {
-    return new ViewRequestAccepted__Params(this);
+export class NoteAccessApproved extends EthereumEvent {
+  get params(): NoteAccessApproved__Params {
+    return new NoteAccessApproved__Params(this);
   }
 }
 
-export class ViewRequestAccepted__Params {
-  _event: ViewRequestAccepted;
+export class NoteAccessApproved__Params {
+  _event: NoteAccessApproved;
 
-  constructor(event: ViewRequestAccepted) {
+  constructor(event: NoteAccessApproved) {
     this._event = event;
   }
 
-  get id(): BigInt {
+  get accessId(): BigInt {
     return this._event.parameters[0].value.toBigInt();
   }
 
-  get loanId(): Address {
-    return this._event.parameters[1].value.toAddress();
+  get note(): Bytes {
+    return this._event.parameters[1].value.toBytes();
   }
 
-  get lender(): Address {
+  get user(): Address {
     return this._event.parameters[2].value.toAddress();
   }
 
@@ -204,23 +226,6 @@ export class LoanDapp__loanPaymentsResult {
   }
 }
 
-export class LoanDapp__viewRequestsResult {
-  value0: string;
-  value1: string;
-
-  constructor(value0: string, value1: string) {
-    this.value0 = value0;
-    this.value1 = value1;
-  }
-
-  toMap(): TypedMap<string, EthereumValue> {
-    let map = new TypedMap<string, EthereumValue>();
-    map.set("value0", EthereumValue.fromString(this.value0));
-    map.set("value1", EthereumValue.fromString(this.value1));
-    return map;
-  }
-}
-
 export class LoanDapp extends SmartContract {
   static bind(address: Address): LoanDapp {
     return new LoanDapp("LoanDapp", address);
@@ -239,14 +244,6 @@ export class LoanDapp extends SmartContract {
   PRIVATE_RANGE_PROOF(): i32 {
     let result = super.call("PRIVATE_RANGE_PROOF", []);
     return result[0].toI32();
-  }
-
-  lenderToViewRequestId(param0: Address, param1: Address): BigInt {
-    let result = super.call("lenderToViewRequestId", [
-      EthereumValue.fromAddress(param0),
-      EthereumValue.fromAddress(param1)
-    ]);
-    return result[0].toBigInt();
   }
 
   settlementCurrencies(param0: BigInt): Address {
@@ -270,16 +267,6 @@ export class LoanDapp extends SmartContract {
       result[0].toAddress(),
       result[1].toAddress(),
       result[2].toBytes()
-    );
-  }
-
-  viewRequests(param0: BigInt): LoanDapp__viewRequestsResult {
-    let result = super.call("viewRequests", [
-      EthereumValue.fromUnsignedBigInt(param0)
-    ]);
-    return new LoanDapp__viewRequestsResult(
-      result[0].toString(),
-      result[1].toString()
     );
   }
 
@@ -503,8 +490,12 @@ export class ApproveViewRequestCall__Inputs {
     return this._call.inputValues[1].value.toAddress();
   }
 
+  get _notionalNote(): Bytes {
+    return this._call.inputValues[2].value.toBytes();
+  }
+
   get _sharedSecret(): string {
-    return this._call.inputValues[2].value.toString();
+    return this._call.inputValues[3].value.toString();
   }
 }
 
@@ -550,6 +541,48 @@ export class SettleInitialBalanceCall__Outputs {
   _call: SettleInitialBalanceCall;
 
   constructor(call: SettleInitialBalanceCall) {
+    this._call = call;
+  }
+}
+
+export class ApproveNoteAccessCall extends EthereumCall {
+  get inputs(): ApproveNoteAccessCall__Inputs {
+    return new ApproveNoteAccessCall__Inputs(this);
+  }
+
+  get outputs(): ApproveNoteAccessCall__Outputs {
+    return new ApproveNoteAccessCall__Outputs(this);
+  }
+}
+
+export class ApproveNoteAccessCall__Inputs {
+  _call: ApproveNoteAccessCall;
+
+  constructor(call: ApproveNoteAccessCall) {
+    this._call = call;
+  }
+
+  get _note(): Bytes {
+    return this._call.inputValues[0].value.toBytes();
+  }
+
+  get _viewingKey(): string {
+    return this._call.inputValues[1].value.toString();
+  }
+
+  get _sharedSecret(): string {
+    return this._call.inputValues[2].value.toString();
+  }
+
+  get _sharedWith(): Address {
+    return this._call.inputValues[3].value.toAddress();
+  }
+}
+
+export class ApproveNoteAccessCall__Outputs {
+  _call: ApproveNoteAccessCall;
+
+  constructor(call: ApproveNoteAccessCall) {
     this._call = call;
   }
 }

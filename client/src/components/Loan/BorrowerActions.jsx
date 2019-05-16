@@ -26,8 +26,9 @@ const BorrowerActions = ({
     case loanStatus('awaiting_settlement'): {
       const {
         viewRequests,
+        lenderAccess,
       } = loan;
-      if (!viewRequests || !viewRequests.length) {
+      if (!viewRequests.length) {
         return (
           <Block
             padding="xs 0"
@@ -41,9 +42,7 @@ const BorrowerActions = ({
         );
       }
 
-      const hasUnapprovedRequests = viewRequests.some(({
-        sharedSecret,
-      }) => !sharedSecret);
+      const hasUnapprovedRequests = viewRequests.length !== lenderAccess.length;
       return (
         <ApproveViewRequestModal
           loan={loan}
@@ -161,7 +160,8 @@ const BorrowerActions = ({
 BorrowerActions.propTypes = {
   loan: PropTypes.shape({
     id: PropTypes.string.isRequired,
-    viewRequests: PropTypes.arrayOf(PropTypes.object),
+    viewRequests: PropTypes.array.isRequired,
+    lenderAccess: PropTypes.array.isRequired,
   }).isRequired,
   notionalValue: PropTypes.number,
   balanceValue: PropTypes.number,

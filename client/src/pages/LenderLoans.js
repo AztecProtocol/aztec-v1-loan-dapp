@@ -8,7 +8,7 @@ const LenderLoans = ({
 }) => (
   <VisibleLoans
     Query={QueryUserLoans}
-    loanType="lender"
+    loanType="approved"
     emptyMessage="You don't have any approved loans yet."
     currentAddress={currentAddress}
   />

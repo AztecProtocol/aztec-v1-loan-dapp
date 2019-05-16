@@ -17,7 +17,7 @@ export function warnLog(...args) {
 
 export function errorLog(...args) {
   const [message, ...rest] = args;
-  formatLog(chalk.white.bgRed.bold(` ${message} `), ...rest);
+  formatLog(chalk.white.bgRed.bold(` ${message.trim()} `), ...rest);
 }
 
 export function log(...args) {

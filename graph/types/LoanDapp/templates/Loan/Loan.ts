@@ -598,24 +598,20 @@ export class ConstructorCall__Inputs {
     return this._call.inputValues[0].value.toBytes();
   }
 
-  get _viewingKey(): string {
-    return this._call.inputValues[1].value.toString();
-  }
-
   get _loanVariables(): Array<BigInt> {
-    return this._call.inputValues[2].value.toBigIntArray();
+    return this._call.inputValues[1].value.toBigIntArray();
   }
 
   get _borrower(): Address {
-    return this._call.inputValues[3].value.toAddress();
+    return this._call.inputValues[2].value.toAddress();
   }
 
   get _aceAddress(): Address {
-    return this._call.inputValues[4].value.toAddress();
+    return this._call.inputValues[3].value.toAddress();
   }
 
   get _settlementCurrency(): Address {
-    return this._call.inputValues[5].value.toAddress();
+    return this._call.inputValues[4].value.toAddress();
   }
 }
 

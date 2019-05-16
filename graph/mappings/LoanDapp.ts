@@ -3,7 +3,8 @@ import {
   LoanCreated,
   LoanApprovedForSettlement,
   ViewRequestCreated,
-  ViewRequestAccepted,
+  ViewRequestApproved,
+  NoteAccessApproved,
   SettlementSuccesfull,
 } from "../types/LoanDapp/LoanDapp";
 import {
@@ -11,50 +12,62 @@ import {
   ZKERC20 as ZKERC20Template,
 } from "../types/LoanDapp/templates";
 import {
-  NoteAccessApproved,
-} from "../types/LoanPayment/LoanPayment";
-import {
+  Currency,
   Note,
   NoteAccess,
   User,
   Loan,
-  LenderAccess,
 } from "../types/schema";
 
 export function addSettlementCurrency(event: SettlementCurrencyAdded): void {
-  let settlementAddress = event.params.settlementAddress;
-  ZKERC20Template.create(settlementAddress);
+  let currencyAddress = event.params.settlementAddress;
+  ZKERC20Template.create(currencyAddress);
+
+  let currencyId = event.params.id.toHex();
+  let currency = Currency.load(currencyId);
+  if (currency == null) {
+    currency = new Currency(currencyId);
+  }
+  currency.address = currencyAddress;
+  currency.save();
 }
 
 export function createLoan(event: LoanCreated): void {
   let loanAddress = event.params.id;
   LoanTemplate.create(loanAddress);
 
-  let loanId = loanAddress.toHex();
-  let borrowerId = event.params.borrower.toHex();
-  let loan = new Loan(loanId);
   let loanVariables = event.params.loanVariables;
-  loan.id = loanId;
-  loan.notional = event.params.notional;
-  loan.viewingKey = event.params.viewingKey;
-  loan.borrower = borrowerId;
-  loan.interestRate = loanVariables[0];
-  loan.interestPeriod = loanVariables[1];
-  loan.loanDuration = loanVariables[2];
-  loan.settlementCurrencyId = loanVariables[3];
-  loan.createdAt = event.params.createdAt;
-  loan.status = '';
-  loan.save();
+  let notionalNoteId = event.params.notional.toHex();
+  let note = new Note(notionalNoteId);
+  let settlementCurrencyId = loanVariables[3];
+  let currency = Currency.load(settlementCurrencyId.toHex());
+  note.ownerAddress = loanAddress;
+  note.currencyAddress = currency.address;
+  note.status = 'STATIC';
+  note.save();
 
+  let borrowerId = event.params.borrower.toHex();
   let user = User.load(borrowerId);
   if (user == null) {
     user = new User(borrowerId);
     user.id = borrowerId;
     user.publicKey = event.params.borrowerPublicKey;
     user.address = event.params.borrower;
+    user.save();
   }
-  // user.loans.push(loanId);
-  user.save();
+
+  let loanId = loanAddress.toHex();
+  let loan = new Loan(loanId);
+  loan.id = loanId;
+  loan.notional = notionalNoteId;
+  loan.borrower = borrowerId;
+  loan.interestRate = loanVariables[0];
+  loan.interestPeriod = loanVariables[1];
+  loan.loanDuration = loanVariables[2];
+  loan.settlementCurrencyId = settlementCurrencyId;
+  loan.createdAt = event.params.createdAt;
+  loan.status = '';
+  loan.save();
 }
 
 export function borrowerApproveLoan(event: LoanApprovedForSettlement): void {
@@ -66,8 +79,7 @@ export function borrowerApproveLoan(event: LoanApprovedForSettlement): void {
   }
 }
 
-export function createFillRequest(event: ViewRequestCreated): void {
-  let loanId = event.params.loanId.toHex();
+export function createViewRequest(event: ViewRequestCreated): void {
   let lenderId = event.params.lender.toHex();
   let user = User.load(lenderId);
   if (user == null) {
@@ -77,25 +89,34 @@ export function createFillRequest(event: ViewRequestCreated): void {
     user.save();
   }
 
-  let lenderAccess = new LenderAccess(event.params.id.toHex());
-  lenderAccess.lender = lenderId;
-  lenderAccess.loan = loanId;
-  lenderAccess.lenderPublicKey = event.params.lenderPublicKey;
-  lenderAccess.save();
+  let loanId = event.params.loanId.toHex();
+  let loan = Loan.load(loanId);
+  let prevViewRequests = loan.viewRequests;
+  loan.viewRequests = prevViewRequests.concat([lenderId]);
+  loan.save();
 }
 
-export function acceptFillRequest(event: ViewRequestAccepted): void {
-  let lenderAccessId = event.params.id.toHex();
-  let lenderAccess = LenderAccess.load(lenderAccessId);
-  lenderAccess.sharedSecret = event.params.sharedSecret;
-  lenderAccess.save();
-
-  let lenderId = event.params.lender.toHex();
+export function approveViewRequest(event: ViewRequestApproved): void {
   let loanId = event.params.loanId.toHex();
-  let lender = User.load(lenderId);
-  let prevApprovedLoans = lender.approvedLoans;
-  lender.approvedLoans = prevApprovedLoans.concat([loanId]);
-  lender.save();
+  let accessId = event.params.accessId.toHex();
+  let userId = event.params.user.toHex();
+  let loan = Loan.load(loanId);
+  let noteId = loan.notional;
+
+  let access = new NoteAccess(accessId);
+  access.note = noteId;
+  access.user = userId;
+  access.sharedSecret = event.params.sharedSecret;
+  access.save();
+
+  let prevLenderAccess = loan.lenderAccess;
+  loan.lenderAccess = prevLenderAccess.concat([accessId]);
+  loan.save();
+
+  let user = User.load(userId);
+  let prevApprovedLoans = user.approvedLoans;
+  user.approvedLoans = prevApprovedLoans.concat([loanId]);
+  user.save();
 }
 
 export function settleLoan(event: SettlementSuccesfull): void {

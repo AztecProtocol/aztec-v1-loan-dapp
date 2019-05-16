@@ -19,7 +19,7 @@ export default async function approveNoteAccess({
     ? await encryptMessage(shareWith.publicKey, viewingKey)
     : '';
 
-  await Web3Service.useContract('LoanPayment')
+  await Web3Service.useContract('LoanDapp')
     .method('approveNoteAccess')
     .send(
       noteHash,

@@ -213,7 +213,7 @@ class PayInterestModal extends PureComponent {
     const {
       address: loanAddress,
       settlementCurrencyId,
-      balance,
+      balanceNote,
       lender,
     } = loan;
     const amount = +this.state.amount;
@@ -223,7 +223,7 @@ class PayInterestModal extends PureComponent {
         loanAddress,
         amount,
         currencyId: settlementCurrencyId,
-        balanceSharedSecret: balance.sharedSecret,
+        balanceSharedSecret: balanceNote.sharedSecret,
         lender,
       });
 
@@ -540,7 +540,7 @@ PayInterestModal.propTypes = {
     loanDuration: PropTypes.number.isRequired,
     settledAt: PropTypes.number.isRequired,
     maturity: PropTypes.number.isRequired,
-    balance: PropTypes.shape({
+    balanceNote: PropTypes.shape({
       sharedSecret: PropTypes.string,
     }),
   }).isRequired,

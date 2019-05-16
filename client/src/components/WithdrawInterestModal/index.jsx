@@ -172,8 +172,8 @@ class WithdrawInterestModal extends PureComponent {
     const {
       interestRate,
       interestPeriod,
-      viewRequest,
-      balance,
+      notionalNote,
+      balanceNote,
       borrower,
       settledAt,
       maturity,
@@ -190,8 +190,8 @@ class WithdrawInterestModal extends PureComponent {
         borrower,
         settledAt,
         maturity,
-        notionalSharedSecret: viewRequest.sharedSecret,
-        balanceSharedSecret: balance.sharedSecret,
+        notionalSharedSecret: notionalNote.sharedSecret,
+        balanceSharedSecret: balanceNote.sharedSecret,
       });
 
       if (withdrawnAmount !== amount) {
@@ -424,7 +424,10 @@ WithdrawInterestModal.propTypes = {
     loanDuration: PropTypes.number.isRequired,
     maturity: PropTypes.number.isRequired,
     settlementCurrencyId: PropTypes.string.isRequired,
-    balance: PropTypes.shape({
+    notionalNote: PropTypes.shape({
+      sharedSecret: PropTypes.string,
+    }).isRequired,
+    balanceNote: PropTypes.shape({
       sharedSecret: PropTypes.string,
     }),
   }).isRequired,

@@ -18,7 +18,6 @@ import SettlementToken from './contracts/SettlementToken';
 import ACE from './contracts/ACE';
 import JoinSplit from './contracts/JoinSplit';
 import ZKERC20 from './contracts/ZKERC20';
-import LoanPayment from './contracts/LoanPayment';
 import Web3Service from './helpers/Web3Service';
 import AuthService from './helpers/AuthService';
 import CurrencyService from './helpers/CurrencyService';
@@ -85,7 +84,6 @@ class App extends PureComponent {
     await Web3Service.registerContract(LoanDapp);
     await Web3Service.registerContract(ACE);
     await Web3Service.registerContract(JoinSplit);
-    await Web3Service.registerContract(LoanPayment);
 
     await Web3Service.registerInterface(ZKERC20);
     await Web3Service.registerInterface(SettlementToken);

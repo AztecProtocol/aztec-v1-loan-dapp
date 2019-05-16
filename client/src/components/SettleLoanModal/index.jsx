@@ -174,11 +174,11 @@ class SettleLoanModal extends PureComponent {
       address: loanAddress,
       settlementCurrencyId,
       borrower,
-      viewRequest,
+      notionalNote,
     } = loan;
     const {
       sharedSecret,
-    } = viewRequest;
+    } = notionalNote;
     const amount = +notionalValue;
 
     try {
@@ -465,7 +465,7 @@ SettleLoanModal.propTypes = {
       address: PropTypes.string.isRequired,
       publicKey: PropTypes.string.isRequired,
     }).isRequired,
-    viewRequest: PropTypes.shape({
+    notionalNote: PropTypes.shape({
       sharedSecret: PropTypes.string.isRequired,
     }).isRequired,
     interestRate: PropTypes.number.isRequired,

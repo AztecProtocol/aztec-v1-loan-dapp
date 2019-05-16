@@ -1,10 +1,13 @@
 import loanStatus from './loanStatus';
+import isSameAddress from './isSameAddress';
 
 export default function transformLoanStatusFromGraph({
   role,
   onChainStatus,
   viewRequests,
-  viewRequest: ownRequest,
+  lenderAccess,
+  notionalNote,
+  currentAddress,
 }) {
   let status = '';
 
@@ -20,18 +23,14 @@ export default function transformLoanStatusFromGraph({
       break;
     case 'PENDING': {
       if (role === 'borrower') {
-        const hasApprovedRequests = viewRequests
-          && viewRequests.some(({
-            sharedSecret,
-          }) => !!sharedSecret);
-        if (hasApprovedRequests) {
+        if (lenderAccess.length > 0) {
           status = loanStatus('awaiting_settlement');
         } else {
           status = loanStatus('pending');
         }
-      } else if (ownRequest && ownRequest.sharedSecret) {
+      } else if (notionalNote.sharedSecret) {
         status = loanStatus('awaiting_settlement');
-      } else if (ownRequest) {
+      } else if (viewRequests.some(({ address }) => isSameAddress(address, currentAddress))) {
         status = loanStatus('awaiting_approval');
       } else {
         status = loanStatus('pending');

@@ -40,12 +40,18 @@ class ApproveViewRequestModal extends PureComponent {
     } = this.props;
     const {
       viewRequests,
+      lenderAccess,
     } = loan;
+    const approvedRequests = lenderAccess.map(({ user }) => ({
+      address: user.address,
+    }));
+    const unapprovedRequests = viewRequests.filter(({ address }) =>
+      !approvedRequests.some(approved => approved.address === address));
 
     this.setState({
       showModal: true,
-      approvedRequests: viewRequests.filter(({ sharedSecret }) => sharedSecret),
-      unapprovedRequests: viewRequests.filter(({ sharedSecret }) => !sharedSecret),
+      approvedRequests,
+      unapprovedRequests,
       selectedLenders: [],
     });
   };
@@ -86,41 +92,38 @@ class ApproveViewRequestModal extends PureComponent {
     try {
       const {
         selectedLenders,
-        unapprovedRequests: prevUnapprovedRequests,
+        approvedRequests,
+        unapprovedRequests,
       } = this.state;
       const {
         loan,
       } = this.props;
       const {
-        viewingKey: encryptedViewingKey,
-        viewRequests,
+        notionalNote: {
+          sharedSecret,
+        },
       } = loan;
       const unapprovedLenders = new Set(selectedLenders);
       const approvedLenders = new Set();
       const privateKey = await AuthService.getPrivateKey();
-      const viewingKey = await decryptMessage(privateKey, encryptedViewingKey);
+      const viewingKey = await decryptMessage(privateKey, sharedSecret);
 
-      await asyncForEach(selectedLenders, async (selectedLender) => {
-        const viewRequest = prevUnapprovedRequests.find(({
-          lenderAddress,
-        }) => lenderAddress === selectedLender);
+      await asyncForEach(selectedLenders, async (address) => {
+        const viewRequest = unapprovedRequests.find(request => request.address === address);
         const approvedError = await this.approveViewRequest(viewRequest, viewingKey);
         if (!approvedError) {
-          unapprovedLenders.delete(selectedLender);
-          approvedLenders.add(selectedLender);
+          unapprovedLenders.delete(address);
+          approvedLenders.add(address);
         }
       });
 
       this.setState({
         selectedLenders: [...unapprovedLenders],
-        approvedRequests: viewRequests.filter(({
-          lenderAddress,
-          sharedSecret,
-        }) => sharedSecret || approvedLenders.has(lenderAddress)),
-        unapprovedRequests: viewRequests.filter(({
-          lenderAddress,
-          sharedSecret,
-        }) => !sharedSecret && !approvedLenders.has(lenderAddress)),
+        approvedRequests: [
+          ...approvedRequests,
+          ...[...approvedLenders].map(address => ({ address })),
+        ],
+        unapprovedRequests: unapprovedRequests.filter(({ address }) => !approvedLenders.has(address)),
         isSubmitting: false,
         error: '',
       });
@@ -139,15 +142,20 @@ class ApproveViewRequestModal extends PureComponent {
     } = this.props;
     const {
       id: loanId,
+      notionalNote,
     } = loan;
     const {
-      lenderAddress,
-      lenderPublicKey,
+      id: notionalNoteHash,
+    } = notionalNote;
+    const {
+      address: lenderAddress,
+      publicKey: lenderPublicKey,
     } = viewRequest;
 
     try {
       await approveViewRequest({
         loanId,
+        notionalNoteHash,
         lenderAddress,
         lenderPublicKey,
         viewingKey,
@@ -206,9 +214,9 @@ class ApproveViewRequestModal extends PureComponent {
             </Block>
             {unapprovedRequests.map(viewRequest => (
               <RequestCheckbox
-                key={viewRequest.lenderAddress}
+                key={viewRequest.address}
                 viewRequest={viewRequest}
-                selected={selectedLenders.some(lenderAddress => lenderAddress === viewRequest.lenderAddress)}
+                selected={selectedLenders.some(address => address === viewRequest.address)}
                 onSelect={this.handleSelectViewRequest}
               />
             ))}
@@ -230,7 +238,7 @@ class ApproveViewRequestModal extends PureComponent {
             </Block>
             {approvedRequests.map(viewRequest => (
               <RequestCheckbox
-                key={viewRequest.lenderAddress}
+                key={viewRequest.address}
                 viewRequest={viewRequest}
                 approved
               />
@@ -262,10 +270,17 @@ ApproveViewRequestModal.propTypes = {
     interestPeriod: PropTypes.number.isRequired,
     loanDuration: PropTypes.number.isRequired,
     settlementCurrencyId: PropTypes.string.isRequired,
-    viewingKey: PropTypes.string.isRequired,
+    notionalNote: PropTypes.shape({
+      sharedSecret: PropTypes.string.isRequired,
+    }).isRequired,
     viewRequests: PropTypes.arrayOf(PropTypes.shape({
-      lenderAddress: PropTypes.string.isRequired,
-      lenderPublicKey: PropTypes.string.isRequired,
+      address: PropTypes.string.isRequired,
+      publicKey: PropTypes.string.isRequired,
+    })).isRequired,
+    lenderAccess: PropTypes.arrayOf(PropTypes.shape({
+      user: PropTypes.shape({
+        address: PropTypes.string.isRequired,
+      }).isRequired,
     })).isRequired,
   }).isRequired,
   notionalValue: PropTypes.number,

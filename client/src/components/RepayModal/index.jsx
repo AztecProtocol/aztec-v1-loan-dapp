@@ -216,7 +216,7 @@ class RepayModal extends PureComponent {
     const {
       address: loanAddress,
       settlementCurrencyId,
-      balance,
+      balanceNote,
       lender,
     } = loan;
     const owedInterest = this.getOwedInterest();
@@ -226,7 +226,7 @@ class RepayModal extends PureComponent {
         loanAddress,
         amount: owedInterest,
         currencyId: settlementCurrencyId,
-        balanceSharedSecret: balance.sharedSecret,
+        balanceSharedSecret: balanceNote.sharedSecret,
         lender,
       });
 
@@ -250,14 +250,16 @@ class RepayModal extends PureComponent {
     } = this.props;
     const {
       address: loanAddress,
-      viewingKey: notionalSharedSecret,
+      notionalNote: {
+        sharedSecret: notionalSharedSecret,
+      },
       settlementCurrencyId,
       interestRate,
       interestPeriod,
       settledAt,
       maturity,
       lender,
-      balance,
+      balanceNote,
     } = loan;
 
     try {
@@ -265,7 +267,7 @@ class RepayModal extends PureComponent {
         loanAddress,
         payableInterest,
         notionalSharedSecret,
-        balanceSharedSecret: balance.sharedSecret,
+        balanceSharedSecret: balanceNote.sharedSecret,
         interestRate,
         interestPeriod,
         totalInterest,
@@ -598,6 +600,12 @@ RepayModal.propTypes = {
       address: PropTypes.string.isRequired,
       publicKey: PropTypes.string.isRequired,
     }).isRequired,
+    notionalNote: PropTypes.shape({
+      sharedSecret: PropTypes.string.isRequired,
+    }).isRequired,
+    balanceNote: PropTypes.shape({
+      sharedSecret: PropTypes.string,
+    }),
     interestRate: PropTypes.number.isRequired,
     interestPeriod: PropTypes.number.isRequired,
     loanDuration: PropTypes.number.isRequired,

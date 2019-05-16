@@ -19,15 +19,12 @@ const processData = (data, loanType, currentAddress) => {
   if (loanType === 'pending' && loans) {
     loans = loans.filter(({
       lenderAccess = [],
-    }) => {
-      const userAccess = lenderAccess.find(({
-        lender: {
-          address: lenderAddress
+    }) => !lenderAccess
+      || !lenderAccess.find(({
+        user: {
+          address,
         },
-      }) => isSameAddress(lenderAddress, currentAddress));
-
-      return !userAccess || !userAccess.sharedSecret;
-    })
+      }) => isSameAddress(address, currentAddress)));
   }
 
   return {

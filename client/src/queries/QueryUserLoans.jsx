@@ -2,10 +2,21 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import get from 'lodash/get';
 import transformLoanFromGraph from '../utils/transformLoanFromGraph';
+import isSameAddress from '../utils/isSameAddress';
 import loanFields from './config/loanFields';
 import QueryAndSubscribe from './helpers/QueryAndSubscribe';
 
 const lenderLoansQuery = `
+  userLoans($id: String) {
+    user(id: $id) {
+      loans: settledLoans {
+        ${loanFields}
+      }
+    }
+  }
+`.trim();
+
+const approvedLoansQuery = `
   userLoans($id: String) {
     user(id: $id) {
       loans: approvedLoans {
@@ -25,8 +36,13 @@ const borrowerLoanQuery = `
   }
 `.trim();
 
-const processData = (data) => {
-  const loans = get(data, 'user.loans');
+const processData = (data, loanType, currentAddress) => {
+  let loans = get(data, 'user.loans');
+  if (loanType === 'approved' && loans) {
+    loans = loans.filter(({
+      lender,
+    }) => !lender || isSameAddress(lender.address, currentAddress));
+  }
 
   return {
     loans: loans
@@ -35,13 +51,23 @@ const processData = (data) => {
 };
 
 const QueryUserLoans = ({
-  role,
+  loanType,
   currentAddress,
   children,
 }) => {
-  const query = role === 'borrower'
-    ? borrowerLoanQuery
-    : lenderLoansQuery;
+  let query;
+  switch (loanType) {
+    case 'borrower':
+      query = borrowerLoanQuery;
+      break;
+    case 'lender':
+      query = lenderLoansQuery;
+      break;
+    case 'approved':
+      query = approvedLoansQuery;
+      break;
+    default:
+  }
 
   const variables = {
     id: currentAddress,
@@ -51,7 +77,7 @@ const QueryUserLoans = ({
     <QueryAndSubscribe
       query={query}
       variables={variables}
-      processData={processData}
+      processData={data => processData(data, loanType, currentAddress)}
     >
       {children}
     </QueryAndSubscribe>
@@ -59,13 +85,17 @@ const QueryUserLoans = ({
 };
 
 QueryUserLoans.propTypes = {
-  role: PropTypes.oneOf(['borrower', 'lender']),
+  loanType: PropTypes.oneOf([
+    'borrower',
+    'lender',
+    'approved',
+  ]),
   currentAddress: PropTypes.string.isRequired,
   children: PropTypes.func.isRequired,
 };
 
 QueryUserLoans.defaultProps = {
-  role: 'lender',
+  loanType: 'approved',
 };
 
 export default QueryUserLoans;

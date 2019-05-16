@@ -26,7 +26,7 @@ class NewLoanHandler extends PureComponent {
         id,
         notional,
       } = newLoan;
-      if (notional === expectedNotional) {
+      if (notional.id === expectedNotional) {
         onReceiveNewLoan(id);
       }
     }
@@ -41,7 +41,9 @@ NewLoanHandler.propTypes = {
   expectedNotional: PropTypes.string,
   newLoan: PropTypes.shape({
     id: PropTypes.string.isRequired,
-    notional: PropTypes.string.isRequired,
+    notional: PropTypes.shape({
+      id: PropTypes.string.isRequired,
+    }).isRequired,
   }),
   onReceiveNewLoan: PropTypes.func,
 };

@@ -18,7 +18,6 @@ import {
   displayedDateTimeFormat,
 } from '../../config/datetime';
 import loanStatus from '../../utils/loanStatus';
-import isSameAddress from '../../utils/isSameAddress';
 import replaceValue from '../../utils/replaceValue';
 import {
   decryptNoteValue,
@@ -55,20 +54,12 @@ class Loan extends PureComponent {
       balance,
     } = prevState;
     const {
-      viewRequest,
-      borrower,
-      balance: balanceNoteData,
+      role,
+      notionalNote,
+      balanceNote,
     } = loan;
 
-    const role = !currentAddress
-      ? ''
-      : (isSameAddress(currentAddress, borrower.address)
-        ? 'borrower'
-        : 'lender');
-
-    const notionalViewingKey = role === 'borrower'
-      ? loan.viewingKey
-      : (viewRequest && viewRequest.sharedSecret) || '';
+    const notionalViewingKey = notionalNote.sharedSecret;
     notional = replaceValue(
       notional,
       'encryptedViewingKey',
@@ -87,7 +78,7 @@ class Loan extends PureComponent {
     } = balance;
     const {
       sharedSecret: balanceSharedSecret,
-    } = balanceNoteData || {};
+    } = balanceNote || {};
     if (balanceSharedSecret !== prevBalanceViewingKey) {
       balance = replaceValue(
         balance,
@@ -405,8 +396,10 @@ Loan.propTypes = {
     lender: PropTypes.shape({
       address: PropTypes.string.isRequired,
     }),
-    viewingKey: PropTypes.string,
-    notional: PropTypes.string.isRequired,
+    notionalNote: PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      sharedSecret: PropTypes.string,
+    }).isRequired,
     interestRate: PropTypes.number.isRequired,
     interestPeriod: PropTypes.number.isRequired,
     loanDuration: PropTypes.number.isRequired,
@@ -415,10 +408,7 @@ Loan.propTypes = {
     status: PropTypes.string.isRequired,
     isLoading: PropTypes.bool,
     repaidAt: PropTypes.number,
-    viewRequest: PropTypes.shape({
-      sharedSecret: PropTypes.string,
-    }),
-    balance: PropTypes.shape({
+    balanceNote: PropTypes.shape({
       id: PropTypes.string.isRequired,
       sharedSecret: PropTypes.string,
     }),

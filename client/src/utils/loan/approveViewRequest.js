@@ -5,6 +5,7 @@ import {
 
 export default async function approveViewRequest({
   loanId,
+  notionalNoteHash,
   lenderAddress,
   lenderPublicKey,
   viewingKey,
@@ -15,6 +16,7 @@ export default async function approveViewRequest({
     .send(
       loanId,
       lenderAddress,
+      notionalNoteHash,
       sharedSecret,
     );
 

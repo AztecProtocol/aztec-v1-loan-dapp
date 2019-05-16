@@ -22,26 +22,38 @@ contract LoanDapp is IAZTEC {
     address id,
     address borrower,
     bytes32 notional,
-    string viewingKey,
     string borrowerPublicKey,
     uint256[] loanVariables,
     uint createdAt
   );
 
-  address owner = msg.sender;
+  event ViewRequestCreated(
+    address loanId,
+    address lender,
+    string lenderPublicKey
+  );
 
+  event ViewRequestApproved(
+    uint accessId,
+    address loanId,
+    address user,
+    string sharedSecret
+  );
+
+  event NoteAccessApproved(
+    uint accessId,
+    bytes32 note,
+    address user,
+    string sharedSecret
+  );
+
+  address owner = msg.sender;
   address aceAddress;
+  address[] public loans;
+  mapping(uint => address) public settlementCurrencies;
 
   uint24 MINT_PRO0F = 66049;
   uint24 BILATERAL_SWAP_PROOF = 65794;
-  address[] public loans;
-
-  mapping(uint => address) public settlementCurrencies;
-
-  function _getCurrencyContract(uint _settlementCurrencyId) internal view returns (address) {
-    require(settlementCurrencies[_settlementCurrencyId] != address(0), 'Settlement Currency is not defined');
-    return settlementCurrencies[_settlementCurrencyId];
-  }
 
   modifier onlyOwner() {
     require(msg.sender == owner);
@@ -56,35 +68,40 @@ contract LoanDapp is IAZTEC {
 
   constructor(address _aceAddress) public {
     aceAddress = _aceAddress;
-    viewRequests.push(ViewRequest(
-      "",
-      ""
-    ));
   }
 
-  function addSettlementCurrency(uint _id, address _address) external onlyOwner {
-    settlementCurrencies[_id] = _address;
-    emit SettlementCurrencyAdded(_id, _address);
+  function _getCurrencyContract(uint _settlementCurrencyId) internal view returns (address) {
+    require(settlementCurrencies[_settlementCurrencyId] != address(0), 'Settlement Currency is not defined');
+    return settlementCurrencies[_settlementCurrencyId];
   }
 
-  function createLoan(
+  function _generateAccessId(bytes32 _note, address _user) internal pure returns (uint) {
+    return uint(keccak256(abi.encodePacked(_note, _user)));
+  }
+
+  function _approveNoteAccess(
+    bytes32 _note,
+    address _userAddress,
+    string memory _sharedSecret
+  ) internal {
+    uint accessId = _generateAccessId(_note, _userAddress);
+    emit NoteAccessApproved(
+      accessId,
+      _note,
+      _userAddress,
+      _sharedSecret
+    );
+  }
+
+  function _createLoan(
     bytes32 _notional,
-    string calldata _viewingKey,
-    string calldata _borrowerPublicKey,
-    // bytes32 _noteHash,
-    uint256[] calldata _loanVariables,
-    // [0] interestRate
-    // [1] interestPeriod
-    // [2] maturity
-    // [3] settlementCurrencyId
-    bytes calldata _proofData
-    // bytes calldata _signature
-  ) external {
+    uint256[] memory _loanVariables,
+    bytes memory _proofData
+  ) private returns (address) {
     address loanCurrency = _getCurrencyContract(_loanVariables[3]);
 
     Loan newLoan = new Loan(
       _notional,
-      _viewingKey,
       _loanVariables,
       msg.sender,
       aceAddress,
@@ -97,14 +114,44 @@ contract LoanDapp is IAZTEC {
     loanContract.setProofs(1, uint256(-1));
     loanContract.confidentialMint(MINT_PROOF, bytes(_proofData));
 
+    return address(newLoan);
+  }
+
+  function addSettlementCurrency(uint _id, address _address) external onlyOwner {
+    settlementCurrencies[_id] = _address;
+    emit SettlementCurrencyAdded(_id, _address);
+  }
+
+  function createLoan(
+    bytes32 _notional,
+    string calldata _viewingKey,
+    string calldata _borrowerPublicKey,
+    uint256[] calldata _loanVariables,
+    // [0] interestRate
+    // [1] interestPeriod
+    // [2] loanDuration
+    // [3] settlementCurrencyId
+    bytes calldata _proofData
+  ) external {
+    address loanId = _createLoan(
+      _notional,
+      _loanVariables,
+      _proofData
+    );
+
     emit LoanCreated(
-      address(newLoan),
+      loanId,
       msg.sender,
       _notional,
-      _viewingKey,
       _borrowerPublicKey,
       _loanVariables,
       block.timestamp
+    );
+
+    _approveNoteAccess(
+      _notional,
+      msg.sender,
+      _viewingKey
     );
   }
 
@@ -118,41 +165,8 @@ contract LoanDapp is IAZTEC {
     emit LoanApprovedForSettlement(_loanId);
   }
 
-  event ViewRequestCreated(
-    uint id,
-    address loanId,
-    address lender,
-    string lenderPublicKey
-  );
-
-  event ViewRequestAccepted(
-    uint id,
-    address loanId,
-    address lender,
-    string sharedSecret
-  );
-
-  struct ViewRequest {
-    string lenderPublicKey;
-    string sharedSecret;
-  }
-
-  ViewRequest[] public viewRequests;
-
-  mapping(address => mapping(address => uint)) public lenderToViewRequestId;
-
   function submitViewRequest(address _loanId, string calldata _lenderPublicKey) external {
-    // require loan not settled
-    require(lenderToViewRequestId[msg.sender][_loanId] == 0);
-
-    uint viewRequestId = viewRequests.push(ViewRequest(
-      _lenderPublicKey,
-      ""
-    )) - 1;
-    lenderToViewRequestId[msg.sender][_loanId] = viewRequestId;
-
     emit ViewRequestCreated(
-      viewRequestId,
       _loanId,
       msg.sender,
       _lenderPublicKey
@@ -162,13 +176,13 @@ contract LoanDapp is IAZTEC {
   function approveViewRequest(
     address _loanId,
     address _lender,
+    bytes32 _notionalNote,
     string calldata _sharedSecret
   ) external onlyBorrower(_loanId) {
-    uint viewRequestId = lenderToViewRequestId[_lender][_loanId];
-    viewRequests[viewRequestId].sharedSecret = _sharedSecret;
+    uint accessId = _generateAccessId(_notionalNote, _lender);
 
-    emit ViewRequestAccepted(
-      viewRequestId,
+    emit ViewRequestApproved(
+      accessId,
       _loanId,
       _lender,
       _sharedSecret
@@ -203,5 +217,28 @@ contract LoanDapp is IAZTEC {
       _loanId,
       block.timestamp
     );
+  }
+
+  function approveNoteAccess(
+    bytes32 _note,
+    string calldata _viewingKey,
+    string calldata _sharedSecret,
+    address _sharedWith
+  ) external {
+    if (bytes(_viewingKey).length != 0) {
+      _approveNoteAccess(
+        _note,
+        msg.sender,
+        _viewingKey
+      );
+    }
+
+    if (bytes(_sharedSecret).length != 0) {
+      _approveNoteAccess(
+        _note,
+        _sharedWith,
+        _sharedSecret
+      );
+    }
   }
 }

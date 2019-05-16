@@ -1,3 +1,8 @@
+type Currency @entity {
+  id: ID!
+  address: Bytes!
+}
+
 type Note @entity {
   id: ID!
   ownerAddress: Bytes!
@@ -15,8 +20,7 @@ type NoteAccess @entity {
 
 type Loan @entity {
   id: ID!
-  notional: Bytes!
-  viewingKey: String!
+  notional: Note!
   borrower: User!
   lender: User
   interestPeriod: BigInt!
@@ -28,7 +32,8 @@ type Loan @entity {
   repaidAt: BigInt
   lastInterestWithdrawAt: BigInt
   status: String!
-  lenderAccess: [LenderAccess!] @derivedFrom(field:"loan")
+  viewRequests: [User!]
+  lenderAccess: [NoteAccess!]
   balance: [Note!]
 }
 
@@ -41,12 +46,4 @@ type User @entity {
   settledLoans: [Loan!] @derivedFrom(field:"lender")
   balance: [Note!]
   balanceAccess: [NoteAccess!]
-}
-
-type LenderAccess @entity {
-  id: ID!
-  loan: Loan!
-  lender: User!
-  lenderPublicKey: String!
-  sharedSecret: String
 }

@@ -24,14 +24,16 @@ dataSources:
       eventHandlers:
         - event: SettlementCurrencyAdded(uint256,address)
           handler: addSettlementCurrency
-        - event: LoanCreated(address,address,bytes32,string,string,uint256[],uint256)
+        - event: LoanCreated(address,address,bytes32,string,uint256[],uint256)
           handler: createLoan
         - event: LoanApprovedForSettlement(address)
           handler: borrowerApproveLoan
-        - event: ViewRequestCreated(uint256,address,address,string)
-          handler: createFillRequest
-        - event: ViewRequestAccepted(uint256,address,address,string)
-          handler: acceptFillRequest
+        - event: ViewRequestCreated(address,address,string)
+          handler: createViewRequest
+        - event: ViewRequestApproved(uint256,address,address,string)
+          handler: approveViewRequest
+        - event: NoteAccessApproved(uint256,bytes32,address,string)
+          handler: approveNoteAccess
         - event: SettlementSuccesfull(address,address,address,uint256)
           handler: settleLoan
       file: ./graph/mappings/LoanDapp.ts
@@ -80,24 +82,3 @@ dataSources:
               handler: createNote
             - event: DestroyNote(address,bytes32,bytes)
               handler: destroyNote
-  - kind: ethereum/contract
-    name: LoanPayment
-    network: development
-    source:
-      address: '0x8baa6cCfD64c0620a59f494fba4b17661C9b8703'
-      abi: LoanPayment
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.2
-      language: wasm/assemblyscript
-      entities:
-        - Loan
-          User
-          LenderAccess
-      abis:
-        - name: LoanPayment
-          file: ./build/abis/LoanPayment.json
-      eventHandlers:
-        - event: NoteAccessApproved(uint256,bytes32,address,string)
-          handler: approveNoteAccess
-      file: ./graph/mappings/LoanDapp.ts

@@ -116,11 +116,7 @@ class VisibleLoans extends PureComponent {
 
 VisibleLoans.propTypes = {
   Query: PropTypes.func.isRequired,
-  loanType: PropTypes.oneOf([
-    'pending',
-    'lender',
-    'borrower',
-  ]).isRequired,
+  loanType: PropTypes.string.isRequired,
   defaultSortBy: PropTypes.string,
   defaultSortOrder: PropTypes.any,
   emptyMessage: PropTypes.string,

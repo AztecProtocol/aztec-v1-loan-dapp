@@ -13,7 +13,8 @@ contract LoanDapp is IAZTEC {
     uint id,
     address settlementAddress
   );
-event LoanApprovedForSettlement(
+
+  event LoanApprovedForSettlement(
     address loanId
   );
 
@@ -79,10 +80,9 @@ event LoanApprovedForSettlement(
     bytes calldata _proofData
     // bytes calldata _signature
   ) external {
+    address loanCurrency = _getCurrencyContract(_loanVariables[3]);
 
-  address loanCurrency = _getCurrencyContract(_loanVariables[3]);
-
-     Loan newLoan = new Loan(
+    Loan newLoan = new Loan(
       _notional,
       _viewingKey,
       _loanVariables,
@@ -113,14 +113,10 @@ event LoanApprovedForSettlement(
     bytes memory _signature,
     address _loanId
   ) public {
-
     Loan loanContract = Loan(_loanId);
     loanContract.confidentialApprove(_noteHash, _loanId, true, _signature);
     emit LoanApprovedForSettlement(_loanId);
   }
-
-
-  // Content in LoanViewRequest
 
   event ViewRequestCreated(
     uint id,
@@ -194,11 +190,10 @@ event LoanApprovedForSettlement(
 
   mapping(uint => mapping(uint => LoanPayment)) public loanPayments;
 
-
   function settleInitialBalance(
-      address _loanId,
-      bytes calldata _proofData,
-      bytes32 _currentInterestBalance
+    address _loanId,
+    bytes calldata _proofData,
+    bytes32 _currentInterestBalance
   ) external {
     Loan loanContract = Loan(_loanId);
     loanContract.settleLoan(_proofData, _currentInterestBalance, msg.sender);

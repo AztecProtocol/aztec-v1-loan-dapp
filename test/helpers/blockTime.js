@@ -34,4 +34,13 @@ blockTime.now = async () => {
 
 blockTime.valueOf = valueOf;
 
+blockTime.fromTransaction = async (transaction) => {
+  const {
+    blockNumber,
+  } = transaction.receipt;
+  const block = await web3.eth.getBlock(blockNumber);
+
+  return (block && block.timestamp) || 0;
+};
+
 export default blockTime;

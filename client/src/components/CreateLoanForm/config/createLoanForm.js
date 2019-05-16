@@ -26,6 +26,10 @@ export default [
             validator: isRequired,
             errorMessage: requiredErrorMessage,
           },
+          {
+            validator: val => +val > 0,
+            errorMessage: `Notional must be larger than 0`,
+          },
         ],
       },
       {
@@ -79,6 +83,10 @@ export default [
             validator: isRequired,
             errorMessage: requiredErrorMessage,
           },
+          {
+            validator: val => Math.ceil(val * 86400) === (val * 86400),
+            errorMessage: 'The equivalent seconds must be an integer',
+          },
         ],
       },
       {
@@ -97,6 +105,10 @@ export default [
           {
             validator: isRequired,
             errorMessage: requiredErrorMessage,
+          },
+          {
+            validator: val => Math.ceil(val * 86400) === (val * 86400),
+            errorMessage: 'The equivalent seconds must be an integer',
           },
         ],
       },

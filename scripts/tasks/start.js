@@ -98,6 +98,15 @@ export default function start({
       }
     });
 
+  const handleBuildError = () => {
+    log('');
+    warnLog('Something went wrong');
+    log('');
+    log(`Please fix the above error and then run ${chalk.cyan('yarn build')} in another terminal window.`);
+    log(`Or run ${chalk.cyan('yarn graph start')} if the error is caused by the graph.`);
+    log('');
+  };
+
   const handleFinishBuild = () => {
     detectPort(clientPort, (error, port) => {
       if (error) {
@@ -143,7 +152,7 @@ export default function start({
       ],
       {
         onClose: handleFinishBuild,
-        onError: handleError,
+        onError: handleBuildError,
       },
     );
   });

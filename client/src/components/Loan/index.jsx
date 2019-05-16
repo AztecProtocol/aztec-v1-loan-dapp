@@ -55,6 +55,8 @@ class Loan extends PureComponent {
     } = prevState;
     const {
       role,
+      borrower,
+      lender,
       notionalNote,
       balanceNote,
     } = loan;
@@ -85,10 +87,12 @@ class Loan extends PureComponent {
         'encryptedViewingKey',
         balanceSharedSecret || '',
       );
+      const shouldHaveAccess = currentAddress === borrower.address
+        || (lender && currentAddress === lender.address);
       balance = replaceValue(
         balance,
         'value',
-        balanceSharedSecret ? 0 : null,
+        balanceSharedSecret && !shouldHaveAccess ? 0 : null,
       );
     }
 
@@ -156,7 +160,7 @@ class Loan extends PureComponent {
       value: prevValue,
     } = this.state[key];
 
-    let value = 0;
+    let value = prevValue;
     let error = null;
     try {
       if (encryptedViewingKey) {

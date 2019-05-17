@@ -2,6 +2,8 @@
 
 This dapp is accompanied by a series of Medium articles to help developers get started with AZTEC.
 
+DEMO: https://youtu.be/LRt1SKB2514
+
 The code base is split into 3 main folders.
 
 1. client (The frontend react code that interfaces with web3 and graph-ql)

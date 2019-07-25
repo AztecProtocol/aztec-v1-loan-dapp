@@ -8,7 +8,7 @@ dataSources:
     name: LoanDapp
     network: development
     source:
-      address: '0x9f169b203276fDd37637d06d0259130A2d7ef1ee'
+      address: '0x7108847f144d025a6e82d7f5D591edd5c75c2AC7'
       abi: LoanDapp
     mapping:
       kind: ethereum/events

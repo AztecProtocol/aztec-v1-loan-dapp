@@ -45,7 +45,7 @@ contract Loan is ZkAssetMintable {
     address _borrower,
     address _aceAddress,
     address _settlementCurrency
-   ) public ZkAssetMintable(_aceAddress, address(0), 1, true, false) {
+   ) public ZkAssetMintable(_aceAddress, address(0), 1, 0, bytes('')) {
       loanVariables.loanFactory = msg.sender;
       loanVariables.notional = _notional;
       loanVariables.id = address(this);
@@ -82,9 +82,9 @@ contract Loan is ZkAssetMintable {
     lender = _lender;
   }
 
-  function confidentialMint(uint24 _proof, bytes calldata _proofData) external {
+  function confidentialMint(uint24 _proof, bytes memory _proofData) public {
     LoanUtilities.onlyLoanDapp(msg.sender, loanVariables.loanFactory);
-    require(msg.sender == owner, "only owner can call the confidentialMint() method");
+    require(msg.sender == owner(), "only owner can call the confidentialMint() method");
     require(_proofData.length != 0, "proof invalid");
     // overide this function to change the mint method to msg.sender
     (bytes memory _proofOutputs) = ace.mint(_proof, _proofData, msg.sender);
@@ -97,7 +97,7 @@ contract Loan is ZkAssetMintable {
     bytes32 noteHash,
     bytes memory metadata) = newTotal.extractNote();
 
-    logOutputNotes(mintedNotes);
+    // logOutputNotes(mintedNotes);
     emit UpdateTotalMinted(noteHash, metadata);
   }
 

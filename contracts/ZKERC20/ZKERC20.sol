@@ -1,6 +1,7 @@
 pragma solidity >= 0.5.0 <0.7.0;
 
 import "@aztec/protocol/contracts/ERC1724/ZkAsset.sol";
+import "@aztec/protocol/contracts/ACE/ACE.sol";
 
 contract ZKERC20 is ZkAsset {
 
@@ -12,7 +13,7 @@ contract ZKERC20 is ZkAsset {
   constructor(
     address _aceAddress,
     address _erc20Address
-   ) public ZkAsset(_aceAddress, address(_erc20Address), 1, false, true) {
+   ) public ZkAsset(_aceAddress, address(_erc20Address), 1) {
      aceAddress = _aceAddress;
      erc20Address = _erc20Address;
   }

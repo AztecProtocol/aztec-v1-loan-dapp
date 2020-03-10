@@ -53,7 +53,7 @@ contract LoanDapp is IAZTEC {
   mapping(uint => address) public settlementCurrencies;
 
   uint24 MINT_PRO0F = 66049;
-  uint24 BILATERAL_SWAP_PROOF = 65794;
+  uint24 SWAP_PROOF = 65794;
 
   modifier onlyOwner() {
     require(msg.sender == owner);
@@ -155,90 +155,90 @@ contract LoanDapp is IAZTEC {
     );
   }
 
-  function approveLoanNotional(
-    bytes32 _noteHash,
-    bytes memory _signature,
-    address _loanId
-  ) public {
-    Loan loanContract = Loan(_loanId);
-    loanContract.confidentialApprove(_noteHash, _loanId, true, _signature);
-    emit LoanApprovedForSettlement(_loanId);
-  }
+  // function approveLoanNotional(
+  //   bytes32 _noteHash,
+  //   bytes memory _signature,
+  //   address _loanId
+  // ) public {
+  //   // Loan loanContract = Loan(_loanId);
+  //   // loanContract.confidentialApprove(_noteHash, _loanId, true, _signature);
+  //   // emit LoanApprovedForSettlement(_loanId);
+  // }
 
-  function submitViewRequest(address _loanId, string calldata _lenderPublicKey) external {
-    emit ViewRequestCreated(
-      _loanId,
-      msg.sender,
-      _lenderPublicKey
-    );
-  }
+  // function submitViewRequest(address _loanId, string calldata _lenderPublicKey) external {
+  //   emit ViewRequestCreated(
+  //     _loanId,
+  //     msg.sender,
+  //     _lenderPublicKey
+  //   );
+  // }
 
-  function approveViewRequest(
-    address _loanId,
-    address _lender,
-    bytes32 _notionalNote,
-    string calldata _sharedSecret
-  ) external onlyBorrower(_loanId) {
-    uint accessId = _generateAccessId(_notionalNote, _lender);
+  // function approveViewRequest(
+  //   address _loanId,
+  //   address _lender,
+  //   bytes32 _notionalNote,
+  //   string calldata _sharedSecret
+  // ) external onlyBorrower(_loanId) {
+  //   uint accessId = _generateAccessId(_notionalNote, _lender);
 
-    emit ViewRequestApproved(
-      accessId,
-      _loanId,
-      _lender,
-      _sharedSecret
-    );
-  }
+  //   emit ViewRequestApproved(
+  //     accessId,
+  //     _loanId,
+  //     _lender,
+  //     _sharedSecret
+  //   );
+  // }
 
-  event SettlementSuccesfull(
-    address indexed from,
-    address indexed to,
-    address loanId,
-    uint256 timestamp
-  );
+  // event SettlementSuccesfull(
+  //   address indexed from,
+  //   address indexed to,
+  //   address loanId,
+  //   uint256 timestamp
+  // );
 
-  struct LoanPayment {
-    address from;
-    address to;
-    bytes notional;
-  }
+  // struct LoanPayment {
+  //   address from;
+  //   address to;
+  //   bytes notional;
+  // }
 
-  mapping(uint => mapping(uint => LoanPayment)) public loanPayments;
+  // mapping(uint => mapping(uint => LoanPayment)) public loanPayments;
 
-  function settleInitialBalance(
-    address _loanId,
-    bytes calldata _proofData,
-    bytes32 _currentInterestBalance
-  ) external {
-    Loan loanContract = Loan(_loanId);
-    loanContract.settleLoan(_proofData, _currentInterestBalance, msg.sender);
-    emit SettlementSuccesfull(
-      msg.sender,
-      loanContract.borrower(),
-      _loanId,
-      block.timestamp
-    );
-  }
+  // function settleInitialBalance(
+  //   address _loanId,
+  //   bytes calldata _proofData,
+  //   bytes32 _currentInterestBalance
+  // ) external {
+  //   Loan loanContract = Loan(_loanId);
+  //   loanContract.settleLoan(_proofData, _currentInterestBalance, msg.sender);
+  //   emit SettlementSuccesfull(
+  //     msg.sender,
+  //     loanContract.borrower(),
+  //     _loanId,
+  //     block.timestamp
+  //   );
+  // }
 
-  function approveNoteAccess(
-    bytes32 _note,
-    string calldata _viewingKey,
-    string calldata _sharedSecret,
-    address _sharedWith
-  ) external {
-    if (bytes(_viewingKey).length != 0) {
-      _approveNoteAccess(
-        _note,
-        msg.sender,
-        _viewingKey
-      );
-    }
+  // function approveNoteAccess(
+  //   bytes32 _note,
+  //   string calldata _viewingKey,
+  //   string calldata _sharedSecret,
+  //   address _sharedWith
+  // ) external {
+  //   if (bytes(_viewingKey).length != 0) {
+  //     _approveNoteAccess(
+  //       _note,
+  //       msg.sender,
+  //       _viewingKey
+  //     );
+  //   }
 
-    if (bytes(_sharedSecret).length != 0) {
-      _approveNoteAccess(
-        _note,
-        _sharedWith,
-        _sharedSecret
-      );
-    }
-  }
+  //   if (bytes(_sharedSecret).length != 0) {
+  //     _approveNoteAccess(
+  //       _note,
+  //       _sharedWith,
+  //       _sharedSecret
+  //     );
+  //   }
+  // }
 }

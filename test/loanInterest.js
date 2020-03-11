@@ -1,12 +1,12 @@
 /* global artifacts contract assert */
 import moment from 'moment';
-import loanSettlement from './helpers/loanSettlement.js';
+import loanSettlement from './helpers/loanSettlement';
 import timeHelpers from './helpers/truffleTestHelpers';
 
 
 const LoanDapp = artifacts.require('./LoanDapp.sol');
 const ACE = artifacts.require('@aztec/protocol/contracts/ACE/ACE.sol');
-const BilateralSwap = artifacts.require('@aztec/protocol/contracts/ACE/validators/bilateralSwap/BilateralSwap.sol');
+const Swap = artifacts.require('@aztec/protocol/contracts/ACE/validators/swap/Swap.sol');
 const JoinSplit = artifacts.require('@aztec/protocol/contracts/ACE/validators/joinSplit/JoinSplit.sol');
 const SettlementToken = artifacts.require('./SettlementToken.sol');
 const ZKERC20 = artifacts.require('./ZKERC20.sol');
@@ -19,7 +19,7 @@ contract('LoanInterest', async (accounts) => {
   let zkerc20Contract;
   let joinSplitContract;
   let aceContract;
-  let bilateralSwap;
+  let swap;
   let LoanSettlementService;
   let loan;
 
@@ -28,7 +28,7 @@ contract('LoanInterest', async (accounts) => {
     loanDappContract = await LoanDapp.new(ace.address);
     settlementToken = await SettlementToken.deployed();
     joinSplitContract = await JoinSplit.deployed();
-    bilateralSwap = await BilateralSwap.deployed();
+    swap = await Swap.deployed();
     zkerc20Contract = await ZKERC20.deployed();
     aceContract = await ACE.deployed();
     const settlementTokenContractAddress = zkerc20Contract.address;

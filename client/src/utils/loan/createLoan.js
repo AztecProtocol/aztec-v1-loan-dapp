@@ -1,4 +1,4 @@
-import aztec from 'aztec.js';
+import { note, MintProof } from 'aztec.js';
 import AuthService from '../../helpers/AuthService';
 import Web3Service from '../../helpers/Web3Service';
 import {
@@ -13,22 +13,21 @@ export default async function createLoan({
   settlementCurrencyId,
 }) {
   const publicKey = await AuthService.getPublicKey();
-  const loanNote = await aztec.note.create(publicKey, notional);
-  const newTotalNote = await aztec.note.create(publicKey, notional);
-  const oldTotalNote = await aztec.note.createZeroValueNote();
+  const loanNote = await note.create(publicKey, notional);
+  const newTotalNote = await note.create(publicKey, notional);
+  const oldTotalNote = await note.createZeroValueNote();
   const loanDappContract = Web3Service.contract('LoanDapp');
   const {
     noteHash,
   } = loanNote.exportNote();
 
-  const {
-    proofData,
-  } = aztec.proof.mint.encodeMintTransaction({
-    newTotalMinted: newTotalNote,
-    oldTotalMinted: oldTotalNote,
-    adjustedNotes: [loanNote],
-    senderAddress: loanDappContract.address,
-  });
+  const proof = new MintProof(
+    newTotalNote,
+    oldTotalNote,
+    [loanNote],
+    loanDappContract.address,
+  );
+  const proofData = proof.encodeABI();
 
   const viewingKey = loanNote.getView();
   const encryptedViewingKey = await encryptMessage(publicKey, viewingKey);

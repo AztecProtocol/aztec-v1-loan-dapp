@@ -1,4 +1,4 @@
-import aztec from 'aztec.js';
+import { JoinSplitProof } from 'aztec.js';
 import Web3Service from '../../helpers/Web3Service';
 import AuthService from '../../helpers/AuthService';
 
@@ -11,22 +11,17 @@ export default async function mintNote({
 
   const settlementNote = await aztec.note.create(publicKey, amount);
   const joinSplitContract = Web3Service.contract('JoinSplit');
-  const {
-    proofData,
-    expectedOutput,
-    signatures,
-  } = aztec.proof.joinSplit.encodeJoinSplitTransaction({
-    inputNotes: [],
-    outputNotes: [settlementNote],
-    senderAddress: currentAddress,
-    inputNoteOwners: [],
-    publicOwner: currentAddress,
-    kPublic: -amount,
-    validatorAddress: joinSplitContract.address,
-  });
+  const proof = new JoinSplitProof(
+    [],
+    [settlementNote],
+    currentAddress,
+    -amount,
+    currentAddress,
+  );
 
-  const proofOutput = aztec.abiEncoder.outputCoder.getProofOutput(expectedOutput, 0);
-  const hashProof = aztec.abiEncoder.outputCoder.hashProofOutput(proofOutput);
+  const proofData = proof.encodeABI(joinSplitContract);
+
+  const hashProof = proof.hash;
 
   await Web3Service.useContract('ACE')
     .method('publicApprove')

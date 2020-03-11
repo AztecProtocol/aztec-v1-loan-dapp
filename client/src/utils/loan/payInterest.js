@@ -1,4 +1,4 @@
-import aztec from 'aztec.js';
+import { note, JoinSplitProof } from 'aztec.js';
 import Web3Service from '../../helpers/Web3Service';
 import AuthService from '../../helpers/AuthService';
 import CurrencyService from '../../helpers/CurrencyService';
@@ -32,8 +32,8 @@ export default async function payInterest({
   const balanceValue = valueOf(balanceNote);
 
   const newBalanceValue = balanceValue + amount;
-  const newBalanceNote = await aztec.note.create(publicKey, newBalanceValue, loanAddress);
-  const withdrawNote = await aztec.note.create(publicKey, 0);
+  const newBalanceNote = await note.create(publicKey, newBalanceValue, loanAddress);
+  const withdrawNote = await note.create(publicKey, 0);
 
   const currencyContractAddress = CurrencyService.getZKAddress(currencyId);
   const interestNote = await mintNote({
@@ -61,16 +61,15 @@ export default async function payInterest({
       signature,
     );
 
-  const {
-    proofData,
-  } = aztec.proof.joinSplit.encodeJoinSplitTransaction({
-    inputNotes: [balanceNote, interestNote],
-    outputNotes: [withdrawNote, newBalanceNote],
-    inputNoteOwners: [],
-    senderAddress: loanAddress,
-    publicOwner: currentAddress,
-    kPublic: 0,
-  });
+  const proof = new JoinSplitProof(
+    [balanceNote, interestNote],
+    [withdrawNote, newBalanceNote],
+    loanAddress,
+    0,
+    currentAddress,
+  );
+
+  const proofData = proof.encodeABI(loanAddress);
 
   await Web3Service.useContract('Loan')
     .at(loanAddress)

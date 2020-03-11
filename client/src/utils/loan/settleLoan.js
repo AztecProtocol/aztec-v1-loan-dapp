@@ -1,4 +1,4 @@
-import aztec from 'aztec.js';
+import { note, SwapProof } from 'aztec.js';
 import Web3Service from '../../helpers/Web3Service';
 import AuthService from '../../helpers/AuthService';
 import CurrencyService from '../../helpers/CurrencyService';
@@ -46,20 +46,20 @@ export default async function settleLoan({
 
   const originalNote = await restoreFromSharedSecret(sharedSecret);
   originalNote.owner = borrower.address;
-  const loanBalanceNote = await aztec.note.create(borrower.publicKey, amount, loanAddress);
-  const settlementAskNote = await aztec.note.create(publicKey, amount);
+  const loanBalanceNote = await note.create(borrower.publicKey, amount, loanAddress);
+  const settlementAskNote = await note.create(publicKey, amount);
 
   const takerBid = originalNote;
   const takerAsk = loanBalanceNote;
   const makerBid = settlementNote;
   const makerAsk = settlementAskNote;
-  const {
-    proofData: bilateralSwapProofData,
-  } = aztec.proof.bilateralSwap.encodeBilateralSwapTransaction({
-    inputNotes: [takerBid, takerAsk],
-    outputNotes: [makerAsk, makerBid],
-    senderAddress: loanAddress,
-  });
+  const proof = new SwapProof(
+    [takerBid, takerAsk],
+    [makerAsk, makerBid],
+    loanAddress,
+  );
+  const swapProofData = proof.encodeABI();
+
   const {
     noteHash: notionalAskNoteHash,
   } = loanBalanceNote.exportNote();
@@ -68,7 +68,7 @@ export default async function settleLoan({
     .method('settleInitialBalance')
     .send(
       loanAddress,
-      bilateralSwapProofData,
+      swapProofData,
       notionalAskNoteHash,
     );
 

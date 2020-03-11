@@ -1,4 +1,4 @@
-import aztec from 'aztec.js';
+import { PrivateRangeProof } from 'aztec.js';
 import Web3Service from '../../helpers/Web3Service';
 import constructBalanceProof from './constructBalanceProof';
 
@@ -33,11 +33,11 @@ export default async function markAsDefault({
 
   const {
     proofData,
-  } = await aztec.proof.privateRange.encodePrivateRangeTransaction({
-    originalNote: withdrawnAmountNote,
-    comparisonNote: balanceNote,
-    senderAddress: loanAddress,
-  });
+  } = await new PrivateRangeProof(
+    withdrawnAmountNote,
+    balanceNote,
+    loanAddress,
+  );
 
   await Web3Service.useContract('Loan')
     .at(loanAddress)

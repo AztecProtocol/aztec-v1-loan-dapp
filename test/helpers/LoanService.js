@@ -6,7 +6,7 @@ const ACE = artifacts.require('@aztec/protocol/contracts/ACE/ACE.sol');
 const LoanDapp = artifacts.require('./LoanDapp.sol');
 const SettlementToken = artifacts.require('./SettlementToken.sol');
 
-const aztec = require('aztec.js');
+const { note, MintProof } = require('aztec.js');
 const secp256k1 = require('@aztec/secp256k1');
 
 dotenv.config();
@@ -29,21 +29,21 @@ const getLoanProofData = async ({
   const {
     publicKey,
   } = user;
-  const notionalNote = await aztec.note.create(publicKey, loanData.notionalValue);
+  const notionalNote = await note.create(publicKey, loanData.notionalValue);
   const {
     noteHash: notionalNoteHash,
   } = notionalNote.exportNote();
 
-  const newTotalNote = await aztec.note.create(publicKey, loanData.notionalValue);
-  const oldTotalNote = await aztec.note.createZeroValueNote();
-  const {
-    proofData,
-  } = aztec.proof.mint.encodeMintTransaction({
-    newTotalMinted: newTotalNote,
-    oldTotalMinted: oldTotalNote,
-    adjustedNotes: [notionalNote],
-    senderAddress: loanDappContract.address,
-  });
+  const newTotalNote = await note.create(publicKey, loanData.notionalValue);
+  const oldTotalNote = await note.createZeroValueNote();
+  const proof = new MintProof(
+    newTotalNote,
+    oldTotalNote,
+    [notionalNote],
+    loanDappContract.address,
+  );
+
+  const proofData = proof.encodeABI();
 
   return {
     notionalNoteHash,

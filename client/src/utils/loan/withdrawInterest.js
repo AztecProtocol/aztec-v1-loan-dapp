@@ -1,4 +1,4 @@
-import aztec from 'aztec.js';
+import { JoinSplitProof } from 'aztec.js';
 import Web3Service from '../../helpers/Web3Service';
 import AuthService from '../../helpers/AuthService';
 import {
@@ -61,14 +61,13 @@ export default async function withdrawInterest({
 
   const {
     proofData: withdrawnAmountProof,
-  } = aztec.proof.joinSplit.encodeJoinSplitTransaction({
-    inputNotes: [balanceNote],
-    outputNotes: [withdrawnAmountNote, newBalanceNote],
-    inputNoteOwners: [],
-    senderAddress: loanAddress,
-    publicOwner: borrower.address,
-    kPublic: 0,
-  });
+  } = new JoinSplitProof(
+    [balanceNote],
+    [withdrawnAmountNote, newBalanceNote],
+    loanAddress,
+    0,
+    borrower.address,
+  );
 
   await Web3Service.useContract('Loan')
     .at(loanAddress)

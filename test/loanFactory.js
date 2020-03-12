@@ -12,7 +12,7 @@ const secp256k1 = require('@aztec/secp256k1');
 
 dotenv.config();
 
-contract('LoanDapp', async () => {
+contract.only('LoanDapp', async () => {
   let loanDappContract;
   let loan;
 
@@ -81,15 +81,20 @@ contract('LoanDapp', async () => {
     });
   });
 
-  it('should be able to create a loan', async () => {
+  it.only('should be able to create a loan', async () => {
+    console.log('before advance to step');
     await loan.advanceToStep('addSettlementCurrency');
+    console.log('passed advance to step');
 
     await assertInvalidOpcode(loanDappContract.loans(0));
 
+    console.log('passed assertion of opcode');
     await loan.createLoan();
 
-    const firstLoanAddress = await loanDappContract.loans(0);
-    assert.equal(firstLoanAddress > 0, true);
+    expect(true).to.equal(false);
+    // const firstLoanAddress = await loanDappContract.loans(0);
+    // console.log({ firstLoanAddress });
+    // assert.equal(firstLoanAddress > 0, true);
   });
 
   it('should trigger an event after creating a loan', async () => {

@@ -1,9 +1,9 @@
 pragma solidity >= 0.5.0 <0.6.0;
 
 import "@aztec/protocol/contracts/interfaces/IAZTEC.sol";
-import ""
 import "@aztec/protocol/contracts/libs/NoteUtils.sol";
 import "./LoanDappUtilities.sol";
+import "./interfaces/ILoan.sol";
 
 contract LoanDapp is IAZTEC {
   using LoanDappUtilities for LoanDappUtilities.LoanDappVariables;
@@ -13,6 +13,8 @@ contract LoanDapp is IAZTEC {
   event LoanApprovedForSettlement(
     address loanId
   );
+
+  event LoanId(address variable);
 
   event LoanCreated(
     address id,
@@ -66,13 +68,22 @@ contract LoanDapp is IAZTEC {
   }
 
   modifier onlyBorrower(address _loanAddress) {
-    Loan loanContract = Loan(_loanAddress);
+    ILoan loanContract = ILoan(_loanAddress);
     require(msg.sender == loanContract.borrower());
     _;
   }
 
   constructor(address _aceAddress) public {
     aceAddress = _aceAddress;
+  }
+
+  function loans(uint256 Id) public view returns (address) {
+    address loanId = loanDappVariables.loans[Id];
+    return loanId;
+  }
+
+  function settlementCurrencies(uint256 Id) public view returns (address) {
+    return loanDappVariables.settlementCurrencies[Id];
   }
 
   function addSettlementCurrency(uint _id, address _address) external onlyOwner {
@@ -103,7 +114,6 @@ contract LoanDapp is IAZTEC {
       block.timestamp
     );
 
-    // SORT
     _approveNoteAccess(
       _notional,
       msg.sender,
@@ -116,7 +126,7 @@ contract LoanDapp is IAZTEC {
     bytes memory _signature,
     address _loanId
   ) public {
-    Loan loanContract = Loan(_loanId);
+    ILoan loanContract = ILoan(_loanId);
     loanContract.confidentialApprove(_noteHash, _loanId, true, _signature);
     emit LoanApprovedForSettlement(_loanId);
   }
@@ -150,8 +160,6 @@ contract LoanDapp is IAZTEC {
     bytes32 _notionalNote,
     string calldata _sharedSecret
   ) external onlyBorrower(_loanId) {
-
-    // SORT
     uint accessId = LoanDappUtilities._generateAccessId(_notionalNote, _lender);
 
     emit ViewRequestApproved(
@@ -175,7 +183,7 @@ contract LoanDapp is IAZTEC {
     bytes calldata _proofData,
     bytes32 _currentInterestBalance
   ) external {
-    Loan loanContract = Loan(_loanId);
+    ILoan loanContract = ILoan(_loanId);
     loanContract.settleLoan(_proofData, _currentInterestBalance, msg.sender);
     emit SettlementSuccesfull(
       msg.sender,

@@ -20,7 +20,7 @@
     "apollo-client": "^2.6.3",
     "apollo-link-http": "^1.5.15",
     "apollo-link-ws": "^1.0.18",
-    "aztec.js": "0.9.1",
+    "aztec.js": "0.17.0",
     "babel-eslint": "^10.0.1",
     "bignumber.js": "^8.1.1",
     "chalk": "^2.4.2",

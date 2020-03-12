@@ -7,9 +7,9 @@ module.exports = {
       settings: {
         optimizer: {
           enabled: true,
-          runs: 500,
+          runs: 1,
         },
-        evmVersion: 'constantinople',
+        evmVersion: 'petersburg',
       },
     },
   },

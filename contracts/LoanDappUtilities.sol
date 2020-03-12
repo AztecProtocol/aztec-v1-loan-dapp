@@ -1,9 +1,11 @@
 pragma solidity >= 0.5.0 <0.6.0;
 import "./Loan.sol";
 
-library LoanDappUtilities {
 
+library LoanDappUtilities {
   uint24 constant MINT_PROOF = 66049;
+
+  event Debug(string variable);
 
   struct LoanDappVariables {
     uint256 trial;

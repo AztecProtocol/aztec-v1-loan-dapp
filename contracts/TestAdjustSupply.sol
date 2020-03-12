@@ -12,16 +12,16 @@ contract TestPrivateRange is PrivateRange {
 
 }
 
-contract TestAdjustSupply is JoinSplitFluid {
+contract TestJoinSplitFluid is JoinSplitFluid {
 
 }
-contract TestBilateralSwap is Swap {
+contract TestSwap is Swap {
 
 }
 contract TestJoinSplit is JoinSplit {
 
 }
 
-contract TestDividendComputation is Dividend {
+contract TestDividend is Dividend {
 
 }

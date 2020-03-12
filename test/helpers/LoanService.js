@@ -141,6 +141,7 @@ class LoanService {
     if (!proofData) {
       ({ proofData } = verifiedProof);
     }
+
     const {
       viewingKey,
       interestRate,
@@ -164,7 +165,10 @@ class LoanService {
       },
     );
 
+    console.log('created first loan');
+
     const loanId = await this.loanDappContract.loans(0);
+    console.log({ loanId });
     this.loanData = {
       ...this.loanData,
       loanId,

@@ -22,8 +22,8 @@ export default async function createLoan({
   } = loanNote.exportNote();
 
   const proof = new MintProof(
-    newTotalNote,
     oldTotalNote,
+    newTotalNote,
     [loanNote],
     loanDappContract.address,
   );

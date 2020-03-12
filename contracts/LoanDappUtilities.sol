@@ -5,10 +5,7 @@ import "./Loan.sol";
 library LoanDappUtilities {
   uint24 constant MINT_PROOF = 66049;
 
-  event Debug(string variable);
-
   struct LoanDappVariables {
-    uint256 trial;
     mapping(uint => address) settlementCurrencies;
     address[] loans;
   }
@@ -29,8 +26,7 @@ library LoanDappUtilities {
     address aceAddress,
     LoanDappVariables storage loanDappVariables
   ) external returns (address) {
-    address loanId = _createLoan(_notional, _loanVariables, _proofData, aceAddress, loanDappVariables);
-    return loanId;
+    return _createLoan(_notional, _loanVariables, _proofData, aceAddress, loanDappVariables);
   } 
 
 
@@ -54,9 +50,7 @@ library LoanDappUtilities {
     loanDappVariables.loans.push(address(newLoan));
     Loan loanContract = Loan(address(newLoan));
 
-    loanContract.setProofs(1, uint256(-1));
     loanContract.confidentialMint(MINT_PROOF, bytes(_proofData));
-
     return address(newLoan);
   }
 }

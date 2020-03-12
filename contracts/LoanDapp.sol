@@ -14,8 +14,6 @@ contract LoanDapp is IAZTEC {
     address loanId
   );
 
-  event LoanId(address variable);
-
   event LoanCreated(
     address id,
     address borrower,
@@ -78,8 +76,7 @@ contract LoanDapp is IAZTEC {
   }
 
   function loans(uint256 Id) public view returns (address) {
-    address loanId = loanDappVariables.loans[Id];
-    return loanId;
+    return loanDappVariables.loans[Id];
   }
 
   function settlementCurrencies(uint256 Id) public view returns (address) {
@@ -152,7 +149,6 @@ contract LoanDapp is IAZTEC {
       _sharedSecret
     );
   }
-
 
   function approveViewRequest(
     address _loanId,

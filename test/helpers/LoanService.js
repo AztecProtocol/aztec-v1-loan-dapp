@@ -37,8 +37,8 @@ const getLoanProofData = async ({
   const newTotalNote = await note.create(publicKey, loanData.notionalValue);
   const oldTotalNote = await note.createZeroValueNote();
   const proof = new MintProof(
-    newTotalNote,
     oldTotalNote,
+    newTotalNote,
     [notionalNote],
     loanDappContract.address,
   );
@@ -126,6 +126,7 @@ class LoanService {
   createLoan = async ({
     user = this.borrower,
   } = {}) => {
+    console.log('start of create loan')
     let {
       notionalNoteHash,
       proofData,
@@ -165,10 +166,7 @@ class LoanService {
       },
     );
 
-    console.log('created first loan');
-
     const loanId = await this.loanDappContract.loans(0);
-    console.log({ loanId });
     this.loanData = {
       ...this.loanData,
       loanId,

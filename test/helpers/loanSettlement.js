@@ -171,8 +171,8 @@ export default ({
 
       defaultLoanData.notionalNote = loanNote;
       const proof = new MintProof(
-        newTotalNote,
         oldTotalNote,
+        newTotalNote,
         [loanNote],
         loanDappContract.address,
       );

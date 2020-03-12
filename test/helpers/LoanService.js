@@ -126,7 +126,6 @@ class LoanService {
   createLoan = async ({
     user = this.borrower,
   } = {}) => {
-    console.log('start of create loan')
     let {
       notionalNoteHash,
       proofData,

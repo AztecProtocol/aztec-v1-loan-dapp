@@ -12,7 +12,7 @@ const secp256k1 = require('@aztec/secp256k1');
 
 dotenv.config();
 
-contract('LoanDapp', async () => {
+contract.only('LoanDapp', async () => {
   let loanDappContract;
   let loan;
 

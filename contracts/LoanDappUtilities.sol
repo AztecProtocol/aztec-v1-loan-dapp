@@ -6,6 +6,7 @@ library LoanDappUtilities {
   uint24 constant MINT_PROOF = 66049;
 
   struct LoanDappVariables {
+    uint256 placeHolder;
     mapping(uint => address) settlementCurrencies;
     address[] loans;
   }

@@ -40,6 +40,7 @@ const signNote = (validatorAddress, noteHash, spender, privateKey) => {
     spender,
     status,
   };
+
   const { signature } = signer.signTypedData(domain, schema, message, privateKey);
 
   return signature[0] + signature[1].slice(2) + signature[2].slice(2);
@@ -111,7 +112,7 @@ export default ({
     //   from: account.address,
     // });
 
-    await zkerc20Contract.confidentialTransfer(proofData, signatures, {
+    await zkerc20Contract.methods['confidentialTransfer(bytes,bytes)'](proofData, [], {
       from: account.address,
     });
 
@@ -127,13 +128,12 @@ export default ({
 
       const loanId = await loanDappContract.loans(0);
       const takerBid = defaultLoanData.notionalNote; // the current loan note
-      const takerAsk = await note.create(borrower.publicKey, defaultLoanData.notional, loanId);
+      const takerAsk = await note.create(borrower.publicKey, defaultLoanData.notional, undefined, loanId);
       defaultLoanData.currentInterestBalance = takerAsk;
       const makerBid = settlementNote;
       const makerAsk = settlementNote;
 
-
-      const settlementSignature = signNote(zkerc20Contract.address, signatureNoteHash, loanId, lender.privateKey);
+      const settlementSignature = signer.signNoteForConfidentialApprove(zkerc20Contract.address, signatureNoteHash, loanId, true, lender.privateKey);
 
       await zkerc20Contract.confidentialApprove(signatureNoteHash, loanId, true, settlementSignature, {
         from: lender.address,
@@ -199,7 +199,8 @@ export default ({
         },
       );
       const loanId = await loanDappContract.loans(0);
-      const loanSignature = signNote(loanId, loanNote.noteHash, loanId, borrower.privateKey);
+      const loanSignature = signer.signNoteForConfidentialApprove(loanId, loanNote.noteHash, loanId, true, borrower.privateKey);
+
       await loanDappContract.approveLoanNotional(
         loanNoteHash,
         loanSignature,
@@ -230,7 +231,7 @@ export default ({
       const withdrawInterest = computeRemainderNoteValue(notionalNote.k.toNumber(), ratio1.denominator, ratio1.numerator);
 
       const remainderNote2 = await note.create(lender.publicKey, withdrawInterest.remainder);
-      const withdrawInterestNote = await note.create(lender.publicKey, withdrawInterest.expectedNoteValue, lender.address);
+      const withdrawInterestNote = await note.create(lender.publicKey, withdrawInterest.expectedNoteValue, undefined, lender.address);
 
       const proof1 = new DividendProof(
         [notionalNote],
@@ -268,7 +269,7 @@ export default ({
     withdrawBalance: async (withdrawAmount) => {
       const { currentInterestBalance } = defaultLoanData;
       const loanId = await loanDappContract.loans(0);
-      const changeNote = await note.create(borrower.publicKey, currentInterestBalance.k.toNumber() - withdrawAmount, loanId);
+      const changeNote = await note.create(borrower.publicKey, currentInterestBalance.k.toNumber() - withdrawAmount, undefined, loanId);
       defaultLoanData.currentInterestBalance = changeNote;
       const withdrawNote = await note.create(borrower.publicKey, withdrawAmount);
       // withdraw
@@ -287,14 +288,14 @@ export default ({
     depositBalance: async (amount) => {
       const { currentInterestBalance } = defaultLoanData;
       const loanId = await loanDappContract.loans(0);
-      const changeNote = await note.create(borrower.publicKey, currentInterestBalance.k.toNumber() + amount, loanId);
+      const changeNote = await note.create(borrower.publicKey, currentInterestBalance.k.toNumber() + amount, undefined, loanId);
       defaultLoanData.currentInterestBalance = changeNote;
       const withdrawNote = await note.create(borrower.publicKey, 0);
       const settlementNote = await mintSettlementNote(amount, borrower);
 
       const { noteHash } = settlementNote.exportNote();
 
-      const signature = signNote(zkerc20Contract.address, noteHash, loanId, borrower.privateKey);
+      const signature = signer.signNoteForConfidentialApprove(zkerc20Contract.address, noteHash, loanId, true, borrower.privateKey);
 
       await zkerc20Contract.confidentialApprove(noteHash, loanId, true, signature, {
         from: borrower.address,
@@ -327,12 +328,12 @@ export default ({
       const changeValue = changeNote.k.toNumber();
 
       const remainingValue = defaultLoanData.notional - changeValue;
-      const lenderRepaymentNote = await note.create(lender.publicKey, defaultLoanData.notional, lender.address);
+      const lenderRepaymentNote = await note.create(lender.publicKey, defaultLoanData.notional, undefined, lender.address);
       const borrowerRepaymentNote = await mintSettlementNote(remainingValue, borrower);
       const { noteHash } = borrowerRepaymentNote.exportNote();
 
       const loanId = await loanDappContract.loans(0);
-      const repaymentSignature = signNote(zkerc20Contract.address, noteHash, loanId, borrower.privateKey);
+      const repaymentSignature = signer.signNoteForConfidentialApprove(zkerc20Contract.address, noteHash, loanId, true, borrower.privateKey);
 
       await zkerc20Contract.confidentialApprove(noteHash, loanId, true, repaymentSignature, {
         from: borrower.address,

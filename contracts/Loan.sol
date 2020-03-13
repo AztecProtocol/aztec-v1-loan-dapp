@@ -57,7 +57,7 @@ contract Loan is ZkAssetMintable {
       borrower = _borrower;
       loanVariables.settlementToken = IZkAsset(_settlementCurrency);
       loanVariables.aceAddress = _aceAddress;
-  }
+    }
 
   function requestAccess() public {
     lenderApprovals[msg.sender] = '0x';

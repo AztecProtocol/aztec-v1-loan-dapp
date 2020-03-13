@@ -50,6 +50,9 @@ library LoanDappUtilities {
 
     loanDappVariables.loans.push(address(newLoan));
     Loan loanContract = Loan(address(newLoan));
+    
+    // enable joinSplit and swap proofs
+    loanContract.setProofs(1, 19);
 
     loanContract.confidentialMint(MINT_PROOF, bytes(_proofData));
     return address(newLoan);

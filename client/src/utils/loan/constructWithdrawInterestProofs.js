@@ -48,11 +48,12 @@ export default async function constructWithdrawInterestProofs({
   const balanceRemainderNote = await createNote(currentBalance.remainder);
 
   const balanceProof = new DividendProof(
-    [notionalNote],
-    [balanceNote, balanceRemainderNote],
+    notionalNote,
+    balanceRemainderNote,
+    balanceNote,
+    loanAddress,
     ratio1.denominator,
     ratio1.numerator,
-    loanAddress,
   );
 
   const balanceProof = balanceProof.encodeABI();
@@ -76,11 +77,12 @@ export default async function constructWithdrawInterestProofs({
   const interestRemainderNote = await createNote(withdrawInterest.remainder, publicKey);
   const withdrawInterestNote = await createNote(withdrawInterest.expectedNoteValue, publicKey);
   const withdrawnInterestProof = new DividendProof(
-    [balanceNote],
-    [withdrawInterestNote, interestRemainderNote],
+    balanceNote,
+    interestRemainderNote,
+    withdrawInterestNote,
+    loanAddress,
     ratio2.denominator,
     ratio2.numerator,
-    loanAddress,
   );
 
   const withdrawnInterestProof = withdrawnInterestProof.encodeABI();

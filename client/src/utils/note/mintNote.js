@@ -1,4 +1,4 @@
-import { JoinSplitProof } from 'aztec.js';
+import { JoinSplitProof, note } from 'aztec.js';
 import Web3Service from '../../helpers/Web3Service';
 import AuthService from '../../helpers/AuthService';
 
@@ -9,7 +9,7 @@ export default async function mintNote({
   const currentAddress = AuthService.address;
   const publicKey = await AuthService.getPublicKey();
 
-  const settlementNote = await aztec.note.create(publicKey, amount);
+  const settlementNote = await note.create(publicKey, amount);
   const joinSplitContract = Web3Service.contract('JoinSplit');
   const proof = new JoinSplitProof(
     [],
@@ -20,6 +20,7 @@ export default async function mintNote({
   );
 
   const proofData = proof.encodeABI(joinSplitContract);
+  const signatures = proof.constructSignatures();
 
   const hashProof = proof.hash;
 

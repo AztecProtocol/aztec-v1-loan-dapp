@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@aztec/dev-utils@1.9.0":
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/@aztec/dev-utils/-/dev-utils-1.9.0.tgz#84fda7fcfd913ec461da9db956d16a3e3e5d6b2d"
-  integrity sha512-Poy51CU5A0YRb8GlCRNrHkWP71EMgc/l6YggaBHrRHGxyZA1eTiNUOYh+FlHSjBhZ2XOwhoWBl/tBwHUJ+BR7A==
+"@aztec/dev-utils@1.10.0":
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/@aztec/dev-utils/-/dev-utils-1.10.0.tgz#231c338bea00128a8db5d42d565e30d03695df00"
+  integrity sha512-H4zhRS478iduvLx9DmsIHSuJna+ryPrqmAA72QCeKc68tT6KQugPoVzDXg4folNB3XWsstXKdwByyWNSQpBm5Q==
   dependencies:
     bn.js "^4.11.8"
 
@@ -1732,12 +1732,12 @@ axobject-query@^2.0.1:
   dependencies:
     ast-types-flow "0.0.7"
 
-aztec.js@0.9.0:
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/aztec.js/-/aztec.js-0.9.0.tgz#ff5bc065e195824b94df2553498c7d4cdea0d0ce"
-  integrity sha512-KHsV9zHJ+/kOsoZEvPe+N/btH/m8V9CV2p0CXH5kCr6k7R72lFaW9hlY5sshTgmVPmRQzAc4aMrWMEJxTQsXyQ==
+aztec.js@0.9.1:
+  version "0.9.1"
+  resolved "https://registry.yarnpkg.com/aztec.js/-/aztec.js-0.9.1.tgz#5d88172b7486c1c9288073805820acc00b0acfc8"
+  integrity sha512-Wi91rc747RkmndptlZSGtq4jLx64YqS7xH1WoSno5zDK40wXctk0kyZnGT5+YsP/d1B8MiPFn2WjSU7h7NoDcw==
   dependencies:
-    "@aztec/dev-utils" "1.9.0"
+    "@aztec/dev-utils" "1.10.0"
     "@aztec/secp256k1" "1.0.1"
     "@aztec/typed-data" "1.0.1"
     bn.js "^4.11.8"

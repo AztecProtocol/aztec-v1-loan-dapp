@@ -54,11 +54,12 @@ export default async function constructBalanceProof({
   const balanceRemainderNote = await createNote(remainder, lenderPublicKey);
 
   const proof = new DividendProof(
-    [notionalNote],
-    [withdrawnAmountNote, balanceRemainderNote],
+    notionalNote,
+    withdrawnAmountNote,
+    balanceRemainderNote,
+    loanAddress,
     ratio1.numerator,
     ratio1.denominator,
-    loanAddress,
   );
 
   const balanceProof = proof.encodeABI();

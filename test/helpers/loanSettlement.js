@@ -231,14 +231,15 @@ export default ({
       const withdrawInterest = computeRemainderNoteValue(notionalNote.k.toNumber(), ratio1.denominator, ratio1.numerator);
 
       const remainderNote2 = await note.create(lender.publicKey, withdrawInterest.remainder);
-      const withdrawInterestNote = await note.create(lender.publicKey, withdrawInterest.expectedNoteValue, undefined, lender.address);
 
+      const withdrawInterestNote = await note.create(lender.publicKey, withdrawInterest.expectedNoteValue, undefined, lender.address);
       const proof1 = new DividendProof(
-        [notionalNote],
-        [withdrawInterestNote, remainderNote2],
+        notionalNote,
+        remainderNote2,
+        withdrawInterestNote,
+        loanId,
         ratio1.numerator,
         ratio1.denominator,
-        loanId,
       );
 
       const proofData1 = proof1.encodeABI();
@@ -247,7 +248,7 @@ export default ({
       changeValue = changeValue < 0 ? 0 : changeValue;
 
 
-      const changeNote = await note.create(borrower.publicKey, changeValue, loanId);
+      const changeNote = await note.create(borrower.publicKey, changeValue, undefined, loanId);
       const proof2 = new JoinSplitProof(
         [currentInterestBalance],
         [withdrawInterestNote, changeNote],
@@ -256,7 +257,7 @@ export default ({
         borrower.address,
       );
 
-      const proofData2 = proof2.encodeABI();
+      const proofData2 = proof2.encodeABI(loanId);
 
       return {
         proofs: [proofData1, proofData2],
@@ -308,7 +309,7 @@ export default ({
         0,
         borrower.address,
       );
-      const proofData = proof.encodeABI();
+      const proofData = proof.encodeABI(loanId);
       return proofData;
     },
 
@@ -317,11 +318,16 @@ export default ({
     defaultLoan: async (withdrawInterest) => {
       const loanId = await loanDappContract.loans(0);
 
-      const { proofData } = new PrivateRangeProof(
+      const remainderValue = (withdrawInterest.k).sub(defaultLoanData.currentInterestBalance.k);
+      const remainderNote = await note.create(lender.publicKey, remainderValue);
+
+      const proof = new PrivateRangeProof(
         withdrawInterest,
         defaultLoanData.currentInterestBalance,
+        remainderNote,
         loanId,
       );
+      const proofData = proof.encodeABI();
       return proofData;
     },
     repayLoan: async (outstandingInterest, changeNote) => {
@@ -340,13 +346,15 @@ export default ({
       });
 
 
-      const { proofData: proof3Data } = new JoinSplitProof(
+      const proof3 = new JoinSplitProof(
         [defaultLoanData.currentInterestBalance, borrowerRepaymentNote],
         [outstandingInterest, lenderRepaymentNote],
         loanId,
         0,
         lender.address,
       );
+
+      const proof3Data = proof3.encodeABI(loanId);
 
       return [proof3Data];
     },

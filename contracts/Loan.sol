@@ -98,7 +98,7 @@ contract Loan is ZkAssetMintable {
     bytes32 noteHash,
     bytes memory metadata) = newTotal.extractNote();
 
-    // logOutputNotes(mintedNotes);
+    logOutputNotes(mintedNotes);
     emit UpdateTotalMinted(noteHash, metadata);
   }
 

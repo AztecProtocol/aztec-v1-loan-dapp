@@ -1,18 +1,14 @@
-pragma solidity >= 0.5.0 <0.7.0;
+pragma solidity >= 0.5.0 <0.6.0;
 
 import "@aztec/protocol/contracts/interfaces/IAZTEC.sol";
 import "@aztec/protocol/contracts/libs/NoteUtils.sol";
-import "@aztec/protocol/contracts/ERC1724/ZkAsset.sol";
-import "./ZKERC20/ZKERC20.sol";
-import "./Loan.sol";
+import "./LoanDappUtilities.sol";
+import "./interfaces/ILoan.sol";
 
 contract LoanDapp is IAZTEC {
+  using LoanDappUtilities for LoanDappUtilities.LoanDappVariables;
   using NoteUtils for bytes;
-
-  event SettlementCurrencyAdded(
-    uint id,
-    address settlementAddress
-  );
+  LoanDappUtilities.LoanDappVariables public loanDappVariables;
 
   event LoanApprovedForSettlement(
     address loanId
@@ -40,6 +36,18 @@ contract LoanDapp is IAZTEC {
     string sharedSecret
   );
 
+  event SettlementCurrencyAdded(
+    uint id,
+    address settlementAddress
+  );
+
+  event SettlementSuccesfull(
+    address indexed from,
+    address indexed to,
+    address loanId,
+    uint256 timestamp
+  );
+
   event NoteAccessApproved(
     uint accessId,
     bytes32 note,
@@ -49,11 +57,8 @@ contract LoanDapp is IAZTEC {
 
   address owner = msg.sender;
   address aceAddress;
-  address[] public loans;
-  mapping(uint => address) public settlementCurrencies;
 
-  uint24 MINT_PRO0F = 66049;
-  uint24 BILATERAL_SWAP_PROOF = 65794;
+  uint24 SWAP_PROOF = 65794;
 
   modifier onlyOwner() {
     require(msg.sender == owner);
@@ -61,7 +66,7 @@ contract LoanDapp is IAZTEC {
   }
 
   modifier onlyBorrower(address _loanAddress) {
-    Loan loanContract = Loan(_loanAddress);
+    ILoan loanContract = ILoan(_loanAddress);
     require(msg.sender == loanContract.borrower());
     _;
   }
@@ -70,55 +75,16 @@ contract LoanDapp is IAZTEC {
     aceAddress = _aceAddress;
   }
 
-  function _getCurrencyContract(uint _settlementCurrencyId) internal view returns (address) {
-    require(settlementCurrencies[_settlementCurrencyId] != address(0), 'Settlement Currency is not defined');
-    return settlementCurrencies[_settlementCurrencyId];
+  function loans(uint256 Id) public view returns (address) {
+    return loanDappVariables.loans[Id];
   }
 
-  function _generateAccessId(bytes32 _note, address _user) internal pure returns (uint) {
-    return uint(keccak256(abi.encodePacked(_note, _user)));
-  }
-
-  function _approveNoteAccess(
-    bytes32 _note,
-    address _userAddress,
-    string memory _sharedSecret
-  ) internal {
-    uint accessId = _generateAccessId(_note, _userAddress);
-    emit NoteAccessApproved(
-      accessId,
-      _note,
-      _userAddress,
-      _sharedSecret
-    );
-  }
-
-  function _createLoan(
-    bytes32 _notional,
-    uint256[] memory _loanVariables,
-    bytes memory _proofData
-  ) private returns (address) {
-    address loanCurrency = _getCurrencyContract(_loanVariables[3]);
-
-    Loan newLoan = new Loan(
-      _notional,
-      _loanVariables,
-      msg.sender,
-      aceAddress,
-      loanCurrency
-    );
-
-    loans.push(address(newLoan));
-    Loan loanContract = Loan(address(newLoan));
-
-    loanContract.setProofs(1, uint256(-1));
-    loanContract.confidentialMint(MINT_PROOF, bytes(_proofData));
-
-    return address(newLoan);
+  function settlementCurrencies(uint256 Id) public view returns (address) {
+    return loanDappVariables.settlementCurrencies[Id];
   }
 
   function addSettlementCurrency(uint _id, address _address) external onlyOwner {
-    settlementCurrencies[_id] = _address;
+    loanDappVariables.settlementCurrencies[_id] = _address;
     emit SettlementCurrencyAdded(_id, _address);
   }
 
@@ -133,11 +99,8 @@ contract LoanDapp is IAZTEC {
     // [3] settlementCurrencyId
     bytes calldata _proofData
   ) external {
-    address loanId = _createLoan(
-      _notional,
-      _loanVariables,
-      _proofData
-    );
+
+    address loanId = LoanDappUtilities.createLoan(_notional, _loanVariables, _proofData, aceAddress, loanDappVariables);
 
     emit LoanCreated(
       loanId,
@@ -160,7 +123,7 @@ contract LoanDapp is IAZTEC {
     bytes memory _signature,
     address _loanId
   ) public {
-    Loan loanContract = Loan(_loanId);
+    ILoan loanContract = ILoan(_loanId);
     loanContract.confidentialApprove(_noteHash, _loanId, true, _signature);
     emit LoanApprovedForSettlement(_loanId);
   }
@@ -173,13 +136,27 @@ contract LoanDapp is IAZTEC {
     );
   }
 
+  function _approveNoteAccess(
+    bytes32 _note,
+    address _userAddress,
+    string memory _sharedSecret
+  ) internal {
+    uint accessId = LoanDappUtilities._generateAccessId(_note, _userAddress);
+    emit NoteAccessApproved(
+      accessId,
+      _note,
+      _userAddress,
+      _sharedSecret
+    );
+  }
+
   function approveViewRequest(
     address _loanId,
     address _lender,
     bytes32 _notionalNote,
     string calldata _sharedSecret
   ) external onlyBorrower(_loanId) {
-    uint accessId = _generateAccessId(_notionalNote, _lender);
+    uint accessId = LoanDappUtilities._generateAccessId(_notionalNote, _lender);
 
     emit ViewRequestApproved(
       accessId,
@@ -188,13 +165,6 @@ contract LoanDapp is IAZTEC {
       _sharedSecret
     );
   }
-
-  event SettlementSuccesfull(
-    address indexed from,
-    address indexed to,
-    address loanId,
-    uint256 timestamp
-  );
 
   struct LoanPayment {
     address from;
@@ -209,7 +179,7 @@ contract LoanDapp is IAZTEC {
     bytes calldata _proofData,
     bytes32 _currentInterestBalance
   ) external {
-    Loan loanContract = Loan(_loanId);
+    ILoan loanContract = ILoan(_loanId);
     loanContract.settleLoan(_proofData, _currentInterestBalance, msg.sender);
     emit SettlementSuccesfull(
       msg.sender,

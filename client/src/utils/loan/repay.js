@@ -1,4 +1,4 @@
-import aztec from 'aztec.js';
+import { JoinSplitProof } from 'aztec.js';
 import Web3Service from '../../helpers/Web3Service';
 import AuthService from '../../helpers/AuthService';
 import CurrencyService from '../../helpers/CurrencyService';
@@ -78,16 +78,15 @@ export default async function repay({
 
   const lenderRepaymentNote = await createNote(notionalValue, lender.publicKey);
 
-  const {
-    proofData: repayProof,
-  } = aztec.proof.joinSplit.encodeJoinSplitTransaction({
-    inputNotes: [balanceNote, borrowerRepaymnetNote],
-    outputNotes: [withdrawnAmountNote, lenderRepaymentNote],
-    inputNoteOwners: [],
-    senderAddress: loanAddress,
-    publicOwner: currentAddress,
-    kPublic: 0,
-  });
+  const proof = new JoinSplitProof(
+    [balanceNote, borrowerRepaymnetNote],
+    [withdrawnAmountNote, lenderRepaymentNote],
+    loanAddress,
+    0,
+    currentAddress,
+  );
+  
+  const repayProof = proof.encodeABI();
 
   await Web3Service.useContract('Loan')
     .at(loanAddress)

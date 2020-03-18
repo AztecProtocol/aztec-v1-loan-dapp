@@ -1,4 +1,4 @@
-import aztec from 'aztec.js';
+import { DividendProof } from 'aztec.js';
 import AuthService from '../../helpers/AuthService';
 import {
   restoreFromSharedSecret,
@@ -47,15 +47,16 @@ export default async function constructWithdrawInterestProofs({
   );
   const balanceRemainderNote = await createNote(currentBalance.remainder);
 
-  const {
-    proofData: balanceProof,
-  } = aztec.proof.dividendComputation.encodeDividendComputationTransaction({
-    inputNotes: [notionalNote],
-    outputNotes: [balanceNote, balanceRemainderNote],
-    za: ratio1.denominator,
-    zb: ratio1.numerator,
-    senderAddress: loanAddress,
-  });
+  const balanceProof = new DividendProof(
+    notionalNote,
+    balanceRemainderNote,
+    balanceNote,
+    loanAddress,
+    ratio1.denominator,
+    ratio1.numerator,
+  );
+
+  const balanceProof = balanceProof.encodeABI();
 
   const duration = calculateInterestDuration({
     amount,
@@ -75,16 +76,16 @@ export default async function constructWithdrawInterestProofs({
 
   const interestRemainderNote = await createNote(withdrawInterest.remainder, publicKey);
   const withdrawInterestNote = await createNote(withdrawInterest.expectedNoteValue, publicKey);
-  const {
-    proofData: withdrawnInterestProof,
-  } = aztec.proof.dividendComputation.encodeDividendComputationTransaction({
-    inputNotes: [balanceNote],
-    outputNotes: [withdrawInterestNote, interestRemainderNote],
-    za: ratio2.denominator,
-    zb: ratio2.numerator,
-    senderAddress: loanAddress,
-  });
+  const withdrawnInterestProof = new DividendProof(
+    balanceNote,
+    interestRemainderNote,
+    withdrawInterestNote,
+    loanAddress,
+    ratio2.denominator,
+    ratio2.numerator,
+  );
 
+  const withdrawnInterestProof = withdrawnInterestProof.encodeABI();
   return {
     duration,
     notionalNote,

@@ -8,7 +8,7 @@ dataSources:
     name: LoanDapp
     network: development
     source:
-      address: '0x7108847f144d025a6e82d7f5D591edd5c75c2AC7'
+      address: '0xf7D078360075F77C79F4Ccd3336E52EB107c6197'
       abi: LoanDapp
     mapping:
       kind: ethereum/events
@@ -80,5 +80,5 @@ dataSources:
           eventHandlers:
             - event: CreateNote(address,bytes32,bytes)
               handler: createNote
-            - event: DestroyNote(address,bytes32,bytes)
+            - event: DestroyNote(address,bytes32)
               handler: destroyNote

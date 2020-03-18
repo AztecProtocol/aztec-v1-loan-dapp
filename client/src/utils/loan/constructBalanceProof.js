@@ -1,4 +1,4 @@
-import aztec from 'aztec.js';
+import { DividendProof } from 'aztec.js';
 import {
   restoreFromSharedSecret,
   createNote,
@@ -53,15 +53,16 @@ export default async function constructBalanceProof({
   const withdrawnAmountNote = await createNote(expectedNoteValue, lenderPublicKey);
   const balanceRemainderNote = await createNote(remainder, lenderPublicKey);
 
-  const {
-    proofData: balanceProof,
-  } = aztec.proof.dividendComputation.encodeDividendComputationTransaction({
-    inputNotes: [notionalNote],
-    outputNotes: [withdrawnAmountNote, balanceRemainderNote],
-    za: ratio1.numerator,
-    zb: ratio1.denominator,
-    senderAddress: loanAddress,
-  });
+  const proof = new DividendProof(
+    notionalNote,
+    withdrawnAmountNote,
+    balanceRemainderNote,
+    loanAddress,
+    ratio1.numerator,
+    ratio1.denominator,
+  );
+
+  const balanceProof = proof.encodeABI();
 
   return {
     duration: amountDuration,

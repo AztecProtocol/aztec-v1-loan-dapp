@@ -1,7 +1,15 @@
 import utils from '@aztec/dev-utils';
 import moment from 'moment';
 
-const aztec = require('aztec.js');
+const {
+  signer,
+  note,
+  JoinSplitProof,
+  DividendProof,
+  SwapProof,
+  PrivateRangeProof,
+  MintProof,
+} = require('aztec.js');
 const dotenv = require('dotenv');
 const secp256k1 = require('@aztec/secp256k1');
 
@@ -24,7 +32,7 @@ const loanData = defaultLoanData;
 const borrower = secp256k1.accountFromPrivateKey(process.env.GANACHE_TESTING_ACCOUNT_1);
 
 const signNote = (validatorAddress, noteHash, spender, privateKey) => {
-  const domain = aztec.signer.generateZKAssetDomainParams(validatorAddress);
+  const domain = signer.generateZKAssetDomainParams(validatorAddress);
   const schema = utils.constants.eip712.NOTE_SIGNATURE;
   const status = true;
   const message = {
@@ -32,7 +40,8 @@ const signNote = (validatorAddress, noteHash, spender, privateKey) => {
     spender,
     status,
   };
-  const { signature } = aztec.signer.signTypedData(domain, schema, message, privateKey);
+
+  const { signature } = signer.signTypedData(domain, schema, message, privateKey);
 
   return signature[0] + signature[1].slice(2) + signature[2].slice(2);
 };
@@ -75,7 +84,7 @@ export default ({
   accounts,
 }) => {
   const mintSettlementNote = async (value, account) => {
-    const settlementNote = await aztec.note.create(account.publicKey, value);
+    const settlementNote = await note.create(account.publicKey, value);
     const loanId = await loanDappContract.loans(0);
     await settlementToken.giveAddressDevBalance(account.address, value, {
       from: account.address,
@@ -84,18 +93,16 @@ export default ({
       from: account.address,
     });
 
-    const { proofData, expectedOutput, signatures } = aztec.proof.joinSplit.encodeJoinSplitTransaction({
-      inputNotes: [],
-      outputNotes: [settlementNote],
-      senderAddress: account.address,
-      inputNoteOwners: [],
-      publicOwner: account.address,
-      kPublic: -value,
-      validatorAddress: joinSplitContract.address,
-    });
+    const proof = new JoinSplitProof(
+      [],
+      [settlementNote],
+      account.address,
+      -value,
+      account.address,
+    );
 
-    const proofOutput = aztec.abiEncoder.outputCoder.getProofOutput(expectedOutput, 0);
-    const hashProof = aztec.abiEncoder.outputCoder.hashProofOutput(proofOutput);
+    const hashProof = proof.hash;
+    const proofData = proof.encodeABI(zkerc20Contract.address);
 
     await aceContract.publicApprove(zkerc20Contract.address, hashProof, value, {
       from: account.address,
@@ -105,7 +112,7 @@ export default ({
     //   from: account.address,
     // });
 
-    await zkerc20Contract.confidentialTransfer(proofData, signatures, {
+    await zkerc20Contract.methods['confidentialTransfer(bytes,bytes)'](proofData, [], {
       from: account.address,
     });
 
@@ -121,13 +128,12 @@ export default ({
 
       const loanId = await loanDappContract.loans(0);
       const takerBid = defaultLoanData.notionalNote; // the current loan note
-      const takerAsk = await aztec.note.create(borrower.publicKey, defaultLoanData.notional, loanId);
+      const takerAsk = await note.create(borrower.publicKey, defaultLoanData.notional, undefined, loanId);
       defaultLoanData.currentInterestBalance = takerAsk;
       const makerBid = settlementNote;
       const makerAsk = settlementNote;
 
-
-      const settlementSignature = signNote(zkerc20Contract.address, signatureNoteHash, loanId, lender.privateKey);
+      const settlementSignature = signer.signNoteForConfidentialApprove(zkerc20Contract.address, signatureNoteHash, loanId, true, lender.privateKey);
 
       await zkerc20Contract.confidentialApprove(signatureNoteHash, loanId, true, settlementSignature, {
         from: lender.address,
@@ -135,19 +141,19 @@ export default ({
 
       const { noteHash: currentBalanceHash } = defaultLoanData.currentInterestBalance.exportNote();
 
-      const {
-        proofData: bilateralSwapProofData,
-      } = aztec.proof.bilateralSwap.encodeBilateralSwapTransaction({
-        inputNotes: [takerBid, takerAsk],
-        outputNotes: [makerAsk, makerBid],
-        senderAddress: loanId,
-      });
+      const swapProof = new SwapProof(
+        [takerBid, takerAsk],
+        [makerAsk, makerBid],
+        loanId,
+      );
+
+      const swapProofData = swapProof.encodeABI();
 
       // defaultLoanData.notionalNote = settlementNote;
 
       await loanDappContract.settleInitialBalance(
         loanId,
-        bilateralSwapProofData,
+        swapProofData,
         currentBalanceHash,
         {
           from: lender.address,
@@ -155,23 +161,23 @@ export default ({
       );
     },
     createLoan: async () => {
-      const loanNote = await aztec.note.create(borrower.publicKey, defaultLoanData.notional);
-      const newTotalNote = await aztec.note.create(borrower.publicKey, defaultLoanData.notional);
-      const oldTotalNote = await aztec.note.createZeroValueNote();
+      const loanNote = await note.create(borrower.publicKey, defaultLoanData.notional);
+      const newTotalNote = await note.create(borrower.publicKey, defaultLoanData.notional);
+      const oldTotalNote = await note.createZeroValueNote();
       const {
         noteHash: loanNoteHash,
         publicKey: loanPublicKey,
       } = loanNote.exportNote();
 
       defaultLoanData.notionalNote = loanNote;
-      const {
-        proofData,
-      } = aztec.proof.mint.encodeMintTransaction({
-        newTotalMinted: newTotalNote,
-        oldTotalMinted: oldTotalNote,
-        adjustedNotes: [loanNote],
-        senderAddress: loanDappContract.address,
-      });
+      const proof = new MintProof(
+        oldTotalNote,
+        newTotalNote,
+        [loanNote],
+        loanDappContract.address,
+      );
+
+      const proofData = proof.encodeABI();
 
       const loan = await loanDappContract.createLoan(
         loanNoteHash,
@@ -193,7 +199,8 @@ export default ({
         },
       );
       const loanId = await loanDappContract.loans(0);
-      const loanSignature = signNote(loanId, loanNote.noteHash, loanId, borrower.privateKey);
+      const loanSignature = signer.signNoteForConfidentialApprove(loanId, loanNote.noteHash, loanId, true, borrower.privateKey);
+
       await loanDappContract.approveLoanNotional(
         loanNoteHash,
         loanSignature,
@@ -223,30 +230,34 @@ export default ({
       const ratio1 = getFraction(defaultLoanData.interestPeriod / (duration * defaultLoanData.interestRate) * 10000);
       const withdrawInterest = computeRemainderNoteValue(notionalNote.k.toNumber(), ratio1.denominator, ratio1.numerator);
 
-      const remainderNote2 = await aztec.note.create(lender.publicKey, withdrawInterest.remainder);
-      const withdrawInterestNote = await aztec.note.create(lender.publicKey, withdrawInterest.expectedNoteValue, lender.address);
+      const remainderNote2 = await note.create(lender.publicKey, withdrawInterest.remainder);
 
-      const { proofData: proofData1 } = aztec.proof.dividendComputation.encodeDividendComputationTransaction({
-        inputNotes: [notionalNote],
-        outputNotes: [withdrawInterestNote, remainderNote2],
-        za: ratio1.numerator,
-        zb: ratio1.denominator,
-        senderAddress: loanId,
-      });
+      const withdrawInterestNote = await note.create(lender.publicKey, withdrawInterest.expectedNoteValue, undefined, lender.address);
+      const proof1 = new DividendProof(
+        notionalNote,
+        remainderNote2,
+        withdrawInterestNote,
+        loanId,
+        ratio1.numerator,
+        ratio1.denominator,
+      );
+
+      const proofData1 = proof1.encodeABI();
 
       let changeValue = currentInterest - withdrawInterest.expectedNoteValue;
       changeValue = changeValue < 0 ? 0 : changeValue;
 
 
-      const changeNote = await aztec.note.create(borrower.publicKey, changeValue, loanId);
-      const { proofData: proofData2 } = aztec.proof.joinSplit.encodeJoinSplitTransaction({
-        inputNotes: [currentInterestBalance],
-        outputNotes: [withdrawInterestNote, changeNote],
-        inputNoteOwners: [],
-        senderAddress: loanId,
-        publicOwner: borrower.address,
-        kPublic: 0,
-      });
+      const changeNote = await note.create(borrower.publicKey, changeValue, undefined, loanId);
+      const proof2 = new JoinSplitProof(
+        [currentInterestBalance],
+        [withdrawInterestNote, changeNote],
+        loanId,
+        0,
+        borrower.address,
+      );
+
+      const proofData2 = proof2.encodeABI(loanId);
 
       return {
         proofs: [proofData1, proofData2],
@@ -259,45 +270,46 @@ export default ({
     withdrawBalance: async (withdrawAmount) => {
       const { currentInterestBalance } = defaultLoanData;
       const loanId = await loanDappContract.loans(0);
-      const changeNote = await aztec.note.create(borrower.publicKey, currentInterestBalance.k.toNumber() - withdrawAmount, loanId);
+      const changeNote = await note.create(borrower.publicKey, currentInterestBalance.k.toNumber() - withdrawAmount, undefined, loanId);
       defaultLoanData.currentInterestBalance = changeNote;
-      const withdrawNote = await aztec.note.create(borrower.publicKey, withdrawAmount);
+      const withdrawNote = await note.create(borrower.publicKey, withdrawAmount);
       // withdraw
-      const { proofData } = aztec.proof.joinSplit.encodeJoinSplitTransaction({
-        inputNotes: [currentInterestBalance],
-        outputNotes: [withdrawNote, changeNote],
-        inputNoteOwners: [],
-        senderAddress: loanId,
-        publicOwner: borrower.address,
-        kPublic: 0,
-      });
+      const proof = new JoinSplitProof(
+        [currentInterestBalance],
+        [withdrawNote, changeNote],
+        loanId,
+        0,
+        borrower.address,
+      );
+
+      const proofData = proof.encodeABI(loanId);
 
       return proofData;
     },
     depositBalance: async (amount) => {
       const { currentInterestBalance } = defaultLoanData;
       const loanId = await loanDappContract.loans(0);
-      const changeNote = await aztec.note.create(borrower.publicKey, currentInterestBalance.k.toNumber() + amount, loanId);
+      const changeNote = await note.create(borrower.publicKey, currentInterestBalance.k.toNumber() + amount, undefined, loanId);
       defaultLoanData.currentInterestBalance = changeNote;
-      const withdrawNote = await aztec.note.create(borrower.publicKey, 0);
+      const withdrawNote = await note.create(borrower.publicKey, 0);
       const settlementNote = await mintSettlementNote(amount, borrower);
 
       const { noteHash } = settlementNote.exportNote();
 
-      const signature = signNote(zkerc20Contract.address, noteHash, loanId, borrower.privateKey);
+      const signature = signer.signNoteForConfidentialApprove(zkerc20Contract.address, noteHash, loanId, true, borrower.privateKey);
 
       await zkerc20Contract.confidentialApprove(noteHash, loanId, true, signature, {
         from: borrower.address,
       });
       // withdraw
-      const { proofData } = aztec.proof.joinSplit.encodeJoinSplitTransaction({
-        inputNotes: [currentInterestBalance, settlementNote],
-        inputNoteOwners: [],
-        outputNotes: [withdrawNote, changeNote],
-        senderAddress: loanId,
-        publicOwner: borrower.address,
-        kPublic: 0,
-      });
+      const proof = new JoinSplitProof(
+        [currentInterestBalance, settlementNote],
+        [withdrawNote, changeNote],
+        loanId,
+        0,
+        borrower.address,
+      );
+      const proofData = proof.encodeABI(loanId);
       return proofData;
     },
 
@@ -306,37 +318,43 @@ export default ({
     defaultLoan: async (withdrawInterest) => {
       const loanId = await loanDappContract.loans(0);
 
-      const { proofData } = await aztec.proof.privateRange.encodePrivateRangeTransaction({
-        originalNote: withdrawInterest,
-        comparisonNote: defaultLoanData.currentInterestBalance,
-        senderAddress: loanId,
-      });
+      const remainderValue = (withdrawInterest.k).sub(defaultLoanData.currentInterestBalance.k);
+      const remainderNote = await note.create(lender.publicKey, remainderValue);
+
+      const proof = new PrivateRangeProof(
+        withdrawInterest,
+        defaultLoanData.currentInterestBalance,
+        remainderNote,
+        loanId,
+      );
+      const proofData = proof.encodeABI();
       return proofData;
     },
     repayLoan: async (outstandingInterest, changeNote) => {
       const changeValue = changeNote.k.toNumber();
 
       const remainingValue = defaultLoanData.notional - changeValue;
-      const lenderRepaymentNote = await aztec.note.create(lender.publicKey, defaultLoanData.notional, lender.address);
+      const lenderRepaymentNote = await note.create(lender.publicKey, defaultLoanData.notional, undefined, lender.address);
       const borrowerRepaymentNote = await mintSettlementNote(remainingValue, borrower);
       const { noteHash } = borrowerRepaymentNote.exportNote();
 
       const loanId = await loanDappContract.loans(0);
-      const repaymentSignature = signNote(zkerc20Contract.address, noteHash, loanId, borrower.privateKey);
+      const repaymentSignature = signer.signNoteForConfidentialApprove(zkerc20Contract.address, noteHash, loanId, true, borrower.privateKey);
 
       await zkerc20Contract.confidentialApprove(noteHash, loanId, true, repaymentSignature, {
         from: borrower.address,
       });
 
 
-      const { proofData: proof3Data } = aztec.proof.joinSplit.encodeJoinSplitTransaction({
-        inputNotes: [defaultLoanData.currentInterestBalance, borrowerRepaymentNote],
-        inputNoteOwners: [],
-        outputNotes: [outstandingInterest, lenderRepaymentNote],
-        senderAddress: loanId,
-        publicOwner: lender.address,
-        kPublic: 0,
-      });
+      const proof3 = new JoinSplitProof(
+        [defaultLoanData.currentInterestBalance, borrowerRepaymentNote],
+        [outstandingInterest, lenderRepaymentNote],
+        loanId,
+        0,
+        lender.address,
+      );
+
+      const proof3Data = proof3.encodeABI(loanId);
 
       return [proof3Data];
     },

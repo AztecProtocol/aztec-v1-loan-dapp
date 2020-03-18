@@ -1,4 +1,5 @@
-pragma solidity >= 0.5.0 <0.7.0;
+pragma solidity >= 0.5.0 <0.6.0;
+
 import "@aztec/protocol/contracts/ERC1724/ZkAssetMintable.sol";
 import "@aztec/protocol/contracts/libs/NoteUtils.sol";
 import "@aztec/protocol/contracts/interfaces/IZkAsset.sol";
@@ -45,7 +46,7 @@ contract Loan is ZkAssetMintable {
     address _borrower,
     address _aceAddress,
     address _settlementCurrency
-   ) public ZkAssetMintable(_aceAddress, address(0), 1, true, false) {
+   ) public ZkAssetMintable(_aceAddress, address(0), 1, 0, bytes('')) {
       loanVariables.loanFactory = msg.sender;
       loanVariables.notional = _notional;
       loanVariables.id = address(this);
@@ -56,7 +57,7 @@ contract Loan is ZkAssetMintable {
       borrower = _borrower;
       loanVariables.settlementToken = IZkAsset(_settlementCurrency);
       loanVariables.aceAddress = _aceAddress;
-  }
+    }
 
   function requestAccess() public {
     lenderApprovals[msg.sender] = '0x';
@@ -82,9 +83,9 @@ contract Loan is ZkAssetMintable {
     lender = _lender;
   }
 
-  function confidentialMint(uint24 _proof, bytes calldata _proofData) external {
+  function confidentialMint(uint24 _proof, bytes memory _proofData) public {
     LoanUtilities.onlyLoanDapp(msg.sender, loanVariables.loanFactory);
-    require(msg.sender == owner, "only owner can call the confidentialMint() method");
+    require(msg.sender == owner(), "only owner can call the confidentialMint() method");
     require(_proofData.length != 0, "proof invalid");
     // overide this function to change the mint method to msg.sender
     (bytes memory _proofOutputs) = ace.mint(_proof, _proofData, msg.sender);

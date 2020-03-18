@@ -1,4 +1,4 @@
-pragma solidity >= 0.5.0 <0.7.0;
+pragma solidity >= 0.5.0 <0.6.0;
 import "@aztec/protocol/contracts/libs/NoteUtils.sol";
 import "@aztec/protocol/contracts/ERC1724/ZkAssetMintable.sol";
 import "@aztec/protocol/contracts/interfaces/IZkAsset.sol";
@@ -15,7 +15,7 @@ library LoanUtilities {
   uint24 constant DIVIDEND_PROOF= 66561;
   uint24 constant JOIN_SPLIT_PROOF = 65793;
   uint24 constant MINT_PRO0F = 66049;
-  uint24 constant BILATERAL_SWAP_PROOF = 65794;
+  uint24 constant SWAP_PROOF = 65794;
   uint24 constant PRIVATE_RANGE_PROOF = 66562;
  
   struct Note {
@@ -163,9 +163,9 @@ library LoanUtilities {
     (bytes memory _loanProofOutputs) = _proofOutputs.get(0);
     (bytes memory _settlementProofOutputs) = _proofOutputs.get(1);
 
-    _loanVariables.settlementToken.confidentialTransferFrom(BILATERAL_SWAP_PROOF, _settlementProofOutputs);
+    _loanVariables.settlementToken.confidentialTransferFrom(SWAP_PROOF, _settlementProofOutputs);
 
-    IZkAsset(_loanVariables.id).confidentialTransferFrom(BILATERAL_SWAP_PROOF, _loanProofOutputs);
+    IZkAsset(_loanVariables.id).confidentialTransferFrom(SWAP_PROOF, _loanProofOutputs);
   }
 
   function _processLoanRepayment(

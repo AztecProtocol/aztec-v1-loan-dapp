@@ -40,7 +40,7 @@
     "husky": "^2.2.0",
     "js-yaml": "^3.13.0",
     "kill-port": "^1.4.0",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "node-sass": "^4.12.0",
     "numeral": "^2.0.6",
     "openzeppelin-solidity": "^2.2.0",
